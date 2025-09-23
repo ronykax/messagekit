@@ -12,6 +12,7 @@ import { useOutputStore } from "@/lib/stores/output";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { defaultComponents } from "@/utils/constants";
+import { useUserStore } from "@/lib/stores/user";
 
 const LEFT = 62.5;
 
@@ -32,8 +33,11 @@ export default function Page() {
     const preview = <PreviewPanel />;
 
     const { setOutput } = useOutputStore();
+    const { user } = useUserStore();
 
     useEffect(() => {
+        if (!user) return;
+
         const run = async () => {
             if (templateId === "new") {
                 const saved = localStorage.getItem("output-json");
@@ -57,6 +61,7 @@ export default function Page() {
                 .from("templates")
                 .select("*")
                 .filter("template_id", `eq`, templateId)
+                .eq("uid", user.id)
                 .single();
 
             if (error) {
@@ -67,7 +72,7 @@ export default function Page() {
         };
 
         run();
-    }, [templateId, router]);
+    }, [templateId, router, user]);
 
     useEffect(() => {
         setOutput(components);

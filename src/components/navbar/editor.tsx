@@ -106,6 +106,7 @@ export default function EditorNavbar({
         supabase
             .from("templates")
             .select("template_id, name")
+            .eq("uid", user.id)
             .limit(25)
             .then(({ data, error }) => {
                 if (error) {
