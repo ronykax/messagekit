@@ -1,16 +1,17 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: n */
+
 import {
     type APIInteraction,
     type APIInteractionResponse,
     Client,
-    type Context,
     InteractionResponseType,
     InteractionType,
 } from "@buape/carbon";
 import { createHandler } from "@buape/carbon/adapters/fetch";
+import { createClient } from "@/lib/supabase/server";
 
 class MessageKitClient extends Client {
-    async handleInteractionsRequest(req: Request, _: Context): Promise<Response> {
+    async handleInteractionsRequest(req: Request): Promise<Response> {
         const isValid = await this.validateDiscordRequest(req);
         if (!isValid) return new Response("Unauthorized", { status: 401 });
 
@@ -21,13 +22,24 @@ class MessageKitClient extends Client {
         }
 
         if (interaction.type === InteractionType.MessageComponent) {
-            return new Response(
-                JSON.stringify({
-                    type: InteractionResponseType.ChannelMessageWithSource,
-                    data: { content: "yes" },
-                } as APIInteractionResponse),
-                { status: 200, headers: { "Content-Type": "application/json" } },
-            );
+            const supabase = await createClient();
+
+            const { data, error } = await supabase
+                .from("actions")
+                .select("*")
+                .filter("custom_id", "eq", interaction.data.custom_id)
+                .single();
+
+            const content = error
+                ? "Failed to fetch action!"
+                : `\`\`\`${JSON.stringify(data)}\`\`\``;
+
+            const response: APIInteractionResponse = {
+                type: InteractionResponseType.ChannelMessageWithSource,
+                data: { content },
+            };
+
+            return new Response(JSON.stringify(response));
         }
 
         return new Response("OK", { status: 202 });
