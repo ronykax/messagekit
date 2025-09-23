@@ -21,7 +21,9 @@ import {
 import { useMemo, useState } from "react";
 import { toComponentEmoji } from "@/utils/functions";
 import EmojiPicker from "../emoji-picker";
+import HelperText from "../helper-text";
 import NewBuilder from "../new-builder";
+import ActionSelector from "../selectors/action-selector";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -175,7 +177,7 @@ export default function TextDisplay({
         ? buttonStyleToButtonType(accessory.style)
         : buttonStyle;
     const buttonUrlValue = isButtonWithURL(accessory) ? accessory.url : buttonUrl;
-    const buttonActionIdValue = isButtonWithCustomId(accessory)
+    const _buttonActionIdValue = isButtonWithCustomId(accessory)
         ? accessory.custom_id
         : buttonActionId;
 
@@ -320,15 +322,15 @@ export default function TextDisplay({
                                 ) : (
                                     <div className="flex flex-col gap-2">
                                         <Label htmlFor="btn-action-id">
-                                            Action ID
+                                            Action
                                             <span className="text-destructive">*</span>
                                         </Label>
-                                        <Input
-                                            placeholder="Enter your action ID"
-                                            value={buttonActionIdValue}
-                                            id="btn-action-id"
-                                            onChange={(e) => setButtonActionId(e.target.value)}
+                                        <ActionSelector
+                                            setAction={(action) =>
+                                                setButtonActionId(action.custom_id as string)
+                                            }
                                         />
+                                        <HelperText text="Select an action that this button should trigger" />
                                     </div>
                                 )}
                             </TabsContent>

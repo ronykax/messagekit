@@ -11,9 +11,9 @@ export type SendOptions =
       };
 
 export enum BotActions {
-    SendToChannel,
-    ReplyToInteraction,
-    DoNothing,
+    SendToChannel = "SendToChannel",
+    ReplyToInteraction = "ReplyToInteraction",
+    DoNothing = "DoNothing",
 }
 
 export const SendToChannelSchema = z.object({
@@ -27,10 +27,13 @@ export const ReplyToInteractionSchema = z.object({
 });
 
 // discriminated union
-export const ActionSchema = z.discriminatedUnion("type", [
-    z.object({ type: BotActions.SendToChannel, ...SendToChannelSchema.shape }),
-    z.object({ type: BotActions.ReplyToInteraction, ...ReplyToInteractionSchema.shape }),
-    z.object({ type: BotActions.DoNothing }),
+export const BotActionSchema = z.discriminatedUnion("type", [
+    z.object({ type: z.literal(BotActions.SendToChannel), ...SendToChannelSchema.shape }),
+    z.object({
+        type: z.literal(BotActions.ReplyToInteraction),
+        ...ReplyToInteractionSchema.shape,
+    }),
+    z.object({ type: z.literal(BotActions.DoNothing) }),
 ]);
 
-export type BotAction = z.infer<typeof ActionSchema>;
+export type BotActionBody = z.infer<typeof BotActionSchema>;

@@ -6,9 +6,11 @@ import {
     Client,
     InteractionResponseType,
     InteractionType,
+    MessageFlags,
 } from "@buape/carbon";
 import { createHandler } from "@buape/carbon/adapters/fetch";
 import { createClient } from "@/lib/supabase/server";
+import { BotActionSchema, BotActions } from "@/utils/types";
 
 class MessageKitClient extends Client {
     async handleInteractionsRequest(req: Request): Promise<Response> {
@@ -24,25 +26,71 @@ class MessageKitClient extends Client {
         if (interaction.type === InteractionType.MessageComponent) {
             const supabase = await createClient();
 
-            const { data, error } = await supabase
+            const { data: actionData, error: actionDataError } = await supabase
                 .from("actions")
                 .select("*")
                 .filter("custom_id", "eq", interaction.data.custom_id)
                 .single();
 
-            const content = error
-                ? "Failed to fetch action!"
-                : `\`\`\`${JSON.stringify(data)}\`\`\``;
+            if (actionDataError) {
+                const response: APIInteractionResponse = {
+                    type: InteractionResponseType.ChannelMessageWithSource,
+                    data: { content: "Failed to fetch action!" },
+                };
+
+                return Response.json(response);
+            }
+
+            const parsed = BotActionSchema.safeParse(actionData.params);
+
+            if (!parsed.success) {
+                const response: APIInteractionResponse = {
+                    type: InteractionResponseType.ChannelMessageWithSource,
+                    data: { content: "Failed to parse action!" },
+                };
+
+                return Response.json(response);
+            }
+
+            const params = parsed.data;
+
+            // REPLY TO INTERACTION
+            if (params.type === BotActions.ReplyToInteraction) {
+                const { data: templateData, error: templateDataError } = await supabase
+                    .from("templates")
+                    .select("*")
+                    .filter("template_id", "eq", params.templateId)
+                    .single();
+
+                if (templateDataError) {
+                    const response: APIInteractionResponse = {
+                        type: InteractionResponseType.ChannelMessageWithSource,
+                        data: { content: JSON.stringify(templateDataError) },
+                    };
+
+                    return Response.json(response);
+                }
+
+                const response: APIInteractionResponse = {
+                    type: InteractionResponseType.ChannelMessageWithSource,
+                    data: {
+                        components: templateData.components,
+                        flags: MessageFlags.IsComponentsV2,
+                    },
+                };
+
+                return Response.json(response);
+            } else if (params.type === BotActions.SendToChannel) {
+            }
+
+            const content = `\`\`\`${JSON.stringify(actionData)}\`\`\``;
 
             const response: APIInteractionResponse = {
                 type: InteractionResponseType.ChannelMessageWithSource,
                 data: { content },
             };
 
-            return new Response(JSON.stringify(response), {
-                status: 200,
-                headers: { "Content-Type": "application/json" },
-            });
+            return Response.json(response);
         }
 
         return new Response("OK", { status: 202 });

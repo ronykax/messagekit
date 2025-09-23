@@ -1,12 +1,13 @@
-import { EllipsisVerticalIcon, PickaxeIcon, SearchIcon } from "lucide-react";
+import { EditIcon, EllipsisVerticalIcon, PickaxeIcon, SearchIcon, TrashIcon } from "lucide-react";
 import { nanoid } from "nanoid";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type Dispatch, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useUserStore } from "@/lib/stores/user";
 import { createClient } from "@/lib/supabase/client";
-import { type BotAction, BotActions } from "@/utils/types";
-import ChannelSelector from "./channel-selector";
+import { type BotActionBody, BotActionSchema, BotActions } from "@/utils/types";
 import { DataTable } from "./data-table";
+import SendToChannelFormBody from "./forms/send-to-channel";
+import HelperText from "./helper-text";
 import RequiredIndicator from "./required-indicator";
 import { Button } from "./ui/button";
 import {
@@ -19,6 +20,12 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "./ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -31,6 +38,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from "./ui/sheet";
+import ReplyToInteractionFormBody from "./forms/reply-to-interaction";
 
 const actionOptions = [
     { label: "Send to channel", type: BotActions.SendToChannel },
@@ -40,23 +48,13 @@ const actionOptions = [
 
 const supabase = createClient();
 
-export default function ActionsButton({
-    templateId,
-    templates,
-}: {
-    templateId: string;
-    templates: Record<string, unknown>[] | null;
-}) {
+export default function ActionsButton({ templateId }: { templateId: string }) {
     const { user } = useUserStore();
     const [sheetOpen, setSheetOpen] = useState(false);
 
     const [actions, setActions] = useState<Record<string, unknown>[]>([]);
-    const [actionData, setActionData] = useState<BotAction | null>(null);
+    const [actionData, setActionData] = useState<BotActionBody | null>(null);
     const [newActionName, setNewActionName] = useState("");
-
-    useEffect(() => {
-        console.log(actionData);
-    }, [actionData]);
 
     const fetchedRef = useRef<Record<string, boolean>>({});
 
@@ -80,9 +78,15 @@ export default function ActionsButton({
             });
     }, [templateId, sheetOpen]);
 
-    async function createNewTemplate() {
+    async function createNewAction() {
         if (!user) return;
         if (templateId === "new") return;
+
+        const parsed = BotActionSchema.safeParse(actionData);
+
+        if (!parsed.success) {
+            return toast.error("Failed to parse schema!");
+        }
 
         supabase
             .from("actions")
@@ -90,8 +94,8 @@ export default function ActionsButton({
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
                 custom_id: nanoid(10),
-                user: user.id,
-                params: actionData,
+                uid: user.id,
+                params: parsed.data,
                 template: templateId,
                 name: newActionName,
             })
@@ -102,6 +106,23 @@ export default function ActionsButton({
                 } else {
                     toast.success("Action has been created!");
                     setActions([...actions, ...data]);
+                }
+            });
+    }
+
+    async function deleteAction(customId: string) {
+        console.log("trying to delete", customId);
+
+        supabase
+            .from("actions")
+            .delete()
+            .eq("custom_id", customId)
+            .then(({ error }) => {
+                if (error) {
+                    toast.error("Failed to delete action!");
+                } else {
+                    setActions(actions.filter((a) => a.custom_id !== customId));
+                    toast.success("Action has been deleted!");
                 }
             });
     }
@@ -121,7 +142,7 @@ export default function ActionsButton({
                 Actions
             </Button>
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                <SheetContent side="left">
+                <SheetContent side="left" className="max-w-md">
                     <SheetHeader>
                         <SheetTitle>Edit Actions</SheetTitle>
                         <SheetDescription>
@@ -152,10 +173,31 @@ export default function ActionsButton({
                                 {
                                     accessorKey: "custom_id",
                                     header: () => null,
-                                    cell: () => (
-                                        <Button size={"icon"} variant={"ghost"}>
-                                            <EllipsisVerticalIcon />
-                                        </Button>
+                                    cell: ({ row }) => (
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button size={"icon"} variant={"ghost"}>
+                                                    <EllipsisVerticalIcon />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuItem disabled>
+                                                    <EditIcon />
+                                                    Edit
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    variant="destructive"
+                                                    onClick={() =>
+                                                        deleteAction(
+                                                            row.original.custom_id as string,
+                                                        )
+                                                    }
+                                                >
+                                                    <TrashIcon />
+                                                    Remove
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     ),
                                 },
                             ]}
@@ -184,12 +226,18 @@ export default function ActionsButton({
                                         onChange={(e) => setNewActionName(e.currentTarget.value)}
                                         value={newActionName}
                                     />
+                                    <HelperText text="Give your action a memorable name (can be descriptive)" />
                                 </div>
-                                <FormBody
-                                    actionData={actionData}
-                                    setActionData={(e) => setActionData(e)}
-                                    templates={templates}
-                                />
+                                <div className="flex flex-col gap-6">
+                                    <ActionTypeSelect
+                                        actionData={actionData}
+                                        setActionData={setActionData}
+                                    />
+                                    <FormBody
+                                        actionData={actionData}
+                                        setActionData={setActionData}
+                                    />
+                                </div>
                                 <DialogFooter>
                                     <DialogClose asChild>
                                         <Button variant="outline">Cancel</Button>
@@ -197,7 +245,7 @@ export default function ActionsButton({
                                     <DialogClose asChild>
                                         <Button
                                             disabled={!newActionConfirmValidity}
-                                            onClick={createNewTemplate}
+                                            onClick={createNewAction}
                                         >
                                             Confirm
                                         </Button>
@@ -218,70 +266,60 @@ export default function ActionsButton({
 function FormBody({
     actionData,
     setActionData,
-    templates,
 }: {
-    actionData: BotAction | null;
-    setActionData: (actionData: BotAction | null) => void;
-    templates: Record<string, unknown>[] | null;
+    actionData: BotActionBody | null;
+    setActionData: Dispatch<React.SetStateAction<BotActionBody | null>>;
+}) {
+    if (!actionData) return null;
+
+    switch (actionData.type) {
+        case BotActions.SendToChannel:
+            return <SendToChannelFormBody data={actionData} setData={setActionData} />;
+        case BotActions.ReplyToInteraction:
+            return <ReplyToInteractionFormBody data={actionData} setData={setActionData} />
+        default:
+            return null;
+    }
+}
+
+function ActionTypeSelect({
+    actionData,
+    setActionData,
+}: {
+    actionData: BotActionBody | null;
+    setActionData: React.Dispatch<React.SetStateAction<BotActionBody | null>>;
 }) {
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-                <Label>
-                    Action
-                    <RequiredIndicator />
-                </Label>
-                <Select onValueChange={(e) => setActionData({ type: +e })}>
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select an action type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {actionOptions.map((option) => (
-                            <SelectItem value={`${option.type}`} key={`${option.type}`}>
-                                {option.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
+        <div className="flex flex-col gap-2">
+            <Label>
+                Action <RequiredIndicator />
+            </Label>
+            <Select
+                value={actionData?.type}
+                onValueChange={(val) => {
+                    const type = val as BotActions;
 
-            {actionData && actionData.type === BotActions.SendToChannel && (
-                <div className="flex flex-col gap-6">
-                    <div className="flex flex-col gap-2">
-                        <Label>
-                            Message
-                            <RequiredIndicator />
-                        </Label>
-                        <Select
-                            onValueChange={(value) =>
-                                setActionData({ ...actionData, templateId: value })
-                            }
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select a message" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {templates?.map((template) => (
-                                    <SelectItem
-                                        key={template.template_id as string}
-                                        value={template.template_id as string}
-                                    >
-                                        {template.name as string}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        <Label>
-                            Channel
-                            <RequiredIndicator />
-                        </Label>
-                        <ChannelSelector onChannelChange={() => {}} />
-                    </div>
-                </div>
-            )}
+                    if (type === BotActions.SendToChannel) {
+                        setActionData({ type, templateId: "", channelId: "" });
+                    } else if (type === BotActions.ReplyToInteraction) {
+                        setActionData({ type, templateId: "", ephemeral: false });
+                    } else {
+                        setActionData({ type });
+                    }
+                }}
+            >
+                <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select an action type" />
+                </SelectTrigger>
+                <SelectContent>
+                    {actionOptions.map((option) => (
+                        <SelectItem value={option.type} key={option.type}>
+                            {option.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <HelperText text="The type of action you want to trigger" />
         </div>
     );
 }

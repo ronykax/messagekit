@@ -6,6 +6,7 @@ import {
     DownloadIcon,
     EraserIcon,
     PlusIcon,
+    RefreshCwIcon,
     SaveIcon,
     SettingsIcon,
     SquareDashedMousePointerIcon,
@@ -74,7 +75,7 @@ export default function EditorNavbar({
     // stores
     const { inspecting, setInspecting } = useInspectingStore();
     const { user } = useUserStore();
-    const { setGuild } = useGuildStore();
+    const { guild, setGuild } = useGuildStore();
 
     // templates
     const [templates, setTemplates] = useState<Record<string, unknown>[] | null>(null);
@@ -105,7 +106,7 @@ export default function EditorNavbar({
         supabase
             .from("templates")
             .select("template_id, name")
-            .limit(10)
+            .limit(25)
             .then(({ data, error }) => {
                 if (error) {
                     toast.error("Failed to fetch messages!");
@@ -117,7 +118,6 @@ export default function EditorNavbar({
         fetch("/api/discord/guilds")
             .then((res) => res.json())
             .then((data) => {
-                console.log(data);
                 setGuilds(data.guilds);
             });
 
@@ -156,7 +156,7 @@ export default function EditorNavbar({
             template_id: randomTemplateId,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            user: user.id,
+            uid: user.id,
             components: components,
             name: newTemplateName,
         });
@@ -175,7 +175,7 @@ export default function EditorNavbar({
             template_id: templateId,
             components: components,
             updated_at: new Date().toISOString(),
-            user: user.id,
+            uid: user.id,
         });
 
         if (error) {
@@ -243,7 +243,10 @@ export default function EditorNavbar({
 
                     {/* GUILD SELECTOR */}
                     {user && (
-                        <Select onValueChange={(value) => setGuild(value)}>
+                        <Select
+                            value={guild ?? undefined}
+                            onValueChange={(value) => setGuild(value)}
+                        >
                             <SelectTrigger className="w-[200px]">
                                 <SelectValue placeholder="Select a guild" />
                             </SelectTrigger>
@@ -257,8 +260,8 @@ export default function EditorNavbar({
                                             className="size-4"
                                             asChild
                                         >
-                                            <a href={"https://discord.gg/5bBM2TVDD3"}>
-                                                <PlusIcon />
+                                            <a href={"/auth/login?prompt=none"}>
+                                                <RefreshCwIcon />
                                             </a>
                                         </Button>
                                     </SelectLabel>
@@ -269,6 +272,24 @@ export default function EditorNavbar({
                                             </span>
                                         </SelectItem>
                                     ))}
+                                    {guilds === null && (
+                                        <SelectItem
+                                            className="text-xs justify-center p-6"
+                                            value="balls"
+                                            disabled
+                                        >
+                                            No guilds found
+                                        </SelectItem>
+                                    )}
+                                    {guilds?.length === 0 && (
+                                        <SelectItem
+                                            className="text-xs justify-center p-6"
+                                            value="balls"
+                                            disabled
+                                        >
+                                            No guilds found
+                                        </SelectItem>
+                                    )}
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
@@ -375,22 +396,7 @@ export default function EditorNavbar({
 
                     <Separator orientation="vertical" />
 
-                    {/* ACTIONS LINK BUTTON */}
-                    {/* <Button variant="ghost" asChild={templateId !== "new"} disabled={templateId === "new"}>
-                        {templateId === "new" ? (
-                            <>
-                                <PickaxeIcon />
-                                Actions
-                            </>
-                        ) : (
-                            <Link href={`${templateId}/actions`}>
-                                <PickaxeIcon />
-                                Actions
-                            </Link>
-                        )}
-                    </Button> */}
-
-                    <ActionsButton templateId={templateId} templates={templates} />
+                    <ActionsButton templateId={templateId} />
 
                     {/* ADD COMPONENT BUTTON */}
                     <DropdownMenu>
@@ -401,7 +407,6 @@ export default function EditorNavbar({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            {/* <DropdownMenuLabel className="text-xs text-muted-foreground">Content</DropdownMenuLabel> */}
                             {componentsList.map((component, index) => (
                                 <Fragment key={`${component.type}-${index}`}>
                                     {component.name === "Container" && (
