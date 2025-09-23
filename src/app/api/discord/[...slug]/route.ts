@@ -11,7 +11,7 @@ import { createHandler } from "@buape/carbon/adapters/fetch";
 
 class MessageKitClient extends Client {
     async handleInteractionsRequest(req: Request, _: Context): Promise<Response> {
-        const isValid = this.validateDiscordRequest(req);
+        const isValid = await this.validateDiscordRequest(req);
         if (!isValid) return new Response("Unauthorized", { status: 401 });
 
         const interaction = (await req.json()) as APIInteraction;
