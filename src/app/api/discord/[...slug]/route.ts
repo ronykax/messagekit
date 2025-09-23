@@ -1,0 +1,57 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: n */
+import {
+    type APIInteraction,
+    Client,
+    ComponentType,
+    type Context,
+    InteractionResponseType,
+    InteractionType,
+} from "@buape/carbon";
+import { createHandler } from "@buape/carbon/adapters/fetch";
+
+class MessageKitClient extends Client {
+    async handleInteractionsRequest(req: Request, _: Context): Promise<Response> {
+        const isValid = this.validateDiscordRequest(req);
+        if (!isValid) return new Response("Unauthorized", { status: 401 });
+
+        const interaction = (await req.json()) as APIInteraction;
+
+        if (interaction.type === InteractionType.Ping) {
+            return Response.json({ type: InteractionResponseType.Pong });
+        }
+
+        if (interaction.type === InteractionType.MessageComponent) {
+            if (
+                interaction.data.component_type === ComponentType.Button &&
+                interaction.data.custom_id === "ping"
+            ) {
+                return new Response(
+                    JSON.stringify({
+                        type: InteractionResponseType.ChannelMessageWithSource,
+                        data: { content: "pong!!" },
+                    }),
+                    { status: 200, headers: { "Content-Type": "application/json" } },
+                );
+            }
+        }
+
+        return new Response("OK", { status: 202 });
+    }
+}
+
+const client = new MessageKitClient(
+    {
+        baseUrl: process.env.BASE_URL!,
+        deploySecret: process.env.DEPLOY_SECRET!,
+        clientId: process.env.DISCORD_CLIENT_ID!,
+        publicKey: process.env.DISCORD_PUBLIC_KEY!,
+        token: process.env.DISCORD_CLIENT_TOKEN!,
+    },
+    {
+        listeners: [],
+    },
+);
+
+const handler = createHandler(client);
+export const GET = (req: Request) => handler(req, {});
+export const POST = (req: Request) => handler(req, {});
