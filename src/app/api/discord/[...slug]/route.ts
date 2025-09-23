@@ -4,6 +4,7 @@ import {
     type APIInteraction,
     type APIInteractionResponse,
     Client,
+    type Context,
     InteractionResponseType,
     InteractionType,
 } from "@buape/carbon";
@@ -11,7 +12,7 @@ import { createHandler } from "@buape/carbon/adapters/fetch";
 import { createClient } from "@/lib/supabase/server";
 
 class MessageKitClient extends Client {
-    async handleInteractionsRequest(req: Request): Promise<Response> {
+    async handleInteractionsRequest(req: Request, _: Context): Promise<Response> {
         const isValid = await this.validateDiscordRequest(req);
         if (!isValid) return new Response("Unauthorized", { status: 401 });
 
