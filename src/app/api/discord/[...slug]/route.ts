@@ -9,7 +9,7 @@ import {
     InteractionType,
 } from "@buape/carbon";
 import { createHandler } from "@buape/carbon/adapters/fetch";
-import { createClient } from "@/lib/supabase/server";
+// import { createClient } from "@/lib/supabase/server";
 
 class MessageKitClient extends Client {
     async handleInteractionsRequest(req: Request, _: Context): Promise<Response> {
@@ -23,17 +23,19 @@ class MessageKitClient extends Client {
         }
 
         if (interaction.type === InteractionType.MessageComponent) {
-            const supabase = await createClient();
+            // const supabase = await createClient();
 
-            const { data, error } = await supabase
-                .from("actions")
-                .select("*")
-                .filter("custom_id", "eq", interaction.data.custom_id)
-                .single();
+            // const { data, error } = await supabase
+            //     .from("actions")
+            //     .select("*")
+            //     .filter("custom_id", "eq", interaction.data.custom_id)
+            //     .single();
 
-            const content = error
-                ? "Failed to fetch action!"
-                : `\`\`\`${JSON.stringify(data)}\`\`\``;
+            // const content = error
+            //     ? "Failed to fetch action!"
+            //     : `\`\`\`${JSON.stringify(data)}\`\`\``;
+
+            const content = "hi world!";
 
             const response: APIInteractionResponse = {
                 type: InteractionResponseType.ChannelMessageWithSource,

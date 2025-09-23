@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
         }
     } else if (options.via === "bot") {
         try {
+            // console.log("message data:", JSON.stringify(message));
             await rest.post(Routes.channelMessages(options.channel_id), {
                 body: message,
                 files: rawFiles.length > 0 ? rawFiles : undefined,
