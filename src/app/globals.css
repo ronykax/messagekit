@@ -87,3 +87,15 @@
         @apply bg-background text-foreground;
     }
 }
+
+::-webkit-scrollbar {
+    background: var(--background);
+}
+
+* {
+    scrollbar-color: var(--secondary) var(--background);
+}
+
+html {
+    scroll-behavior: smooth;
+}

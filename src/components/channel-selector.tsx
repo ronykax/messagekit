@@ -34,7 +34,7 @@ export default function ChannelSelector({ onChannelChange }: Props) {
         if (!guild) return;
         setIsLoading(true);
 
-        fetch(`/api/discord/guilds/${guild.id}/channels`)
+        fetch(`/api/discord/guilds/${guild}/channels`)
             .then((res) => res.json())
             .then((data) => {
                 setChannels(data);

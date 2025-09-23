@@ -185,14 +185,6 @@ export default function EditorNavbar({
         }
     }
 
-    function getAndSetGuild(guildId: string) {
-        fetch(`/api/discord/guilds/${guildId}`)
-            .then((res) => res.json())
-            .then((data) => {
-                setGuild(data.guild);
-            });
-    }
-
     return (
         <>
             <div className="flex justify-between gap-2 p-4 overflow-x-auto border-b border-dashed">
@@ -251,7 +243,7 @@ export default function EditorNavbar({
 
                     {/* GUILD SELECTOR */}
                     {user && (
-                        <Select onValueChange={(value) => getAndSetGuild(value)}>
+                        <Select onValueChange={(value) => setGuild(value)}>
                             <SelectTrigger className="w-[200px]">
                                 <SelectValue placeholder="Select a guild" />
                             </SelectTrigger>
@@ -281,7 +273,6 @@ export default function EditorNavbar({
                             </SelectContent>
                         </Select>
                     )}
-                    {user === undefined && <Skeleton className="w-[200px] h-full" />}
 
                     <Button variant="outline" size="icon">
                         <SettingsIcon />

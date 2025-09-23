@@ -85,7 +85,10 @@ export default function Page() {
             <div className="hidden md:flex flex-1">
                 <ResizablePanelGroup direction="horizontal">
                     <ResizablePanel defaultSize={LEFT}>{editor}</ResizablePanel>
-                    <ResizableHandle withHandle />
+                    <ResizableHandle
+                        withHandle
+                        className="w-0 border-r bg-transparent border-dashed"
+                    />
                     <ResizablePanel defaultSize={100 - LEFT}>{preview}</ResizablePanel>
                 </ResizablePanelGroup>
             </div>

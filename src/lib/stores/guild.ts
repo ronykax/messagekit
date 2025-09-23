@@ -1,16 +1,15 @@
-import type { APIGuild } from "discord-api-types/v10";
 import { create } from "zustand";
 
 type GuildStore = {
-    guild: APIGuild | null;
-    setGuild: (guild: APIGuild | null) => void;
+    guild: string | null;
+    setGuild: (guild: string | null) => void;
 };
 
 export const useGuildStore = create<GuildStore>((set) => ({
     guild: null,
     setGuild: (guild) => {
         if (guild) {
-            localStorage.setItem("guildId", guild.id);
+            localStorage.setItem("guildId", guild);
         } else {
             localStorage.removeItem("guildId");
         }

@@ -28,7 +28,14 @@ export default function EmojiPicker({
 
     useEffect(() => {
         if (!guild) return;
-        setEmojis(guild.emojis);
+
+        fetch(`/api/discord/guilds/${guild}`)
+            .then((res) => res.json())
+            .then((data) => {
+                setEmojis(data.guild.emojis);
+            });
+
+        setEmojis([]);
     }, [guild]);
 
     return (

@@ -1,8 +1,8 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: n */
 import {
     type APIInteraction,
+    type APIInteractionResponse,
     Client,
-    ComponentType,
     type Context,
     InteractionResponseType,
     InteractionType,
@@ -21,18 +21,13 @@ class MessageKitClient extends Client {
         }
 
         if (interaction.type === InteractionType.MessageComponent) {
-            if (
-                interaction.data.component_type === ComponentType.Button &&
-                interaction.data.custom_id === "ping"
-            ) {
-                return new Response(
-                    JSON.stringify({
-                        type: InteractionResponseType.ChannelMessageWithSource,
-                        data: { content: "pong!!" },
-                    }),
-                    { status: 200, headers: { "Content-Type": "application/json" } },
-                );
-            }
+            return new Response(
+                JSON.stringify({
+                    type: InteractionResponseType.ChannelMessageWithSource,
+                    data: { content: "yes" },
+                } as APIInteractionResponse),
+                { status: 200, headers: { "Content-Type": "application/json" } },
+            );
         }
 
         return new Response("OK", { status: 202 });
@@ -47,9 +42,7 @@ const client = new MessageKitClient(
         publicKey: process.env.DISCORD_PUBLIC_KEY!,
         token: process.env.DISCORD_CLIENT_TOKEN!,
     },
-    {
-        listeners: [],
-    },
+    {},
 );
 
 const handler = createHandler(client);
