@@ -223,17 +223,15 @@ export default function EditorNavbar({
         <>
             <div className="flex justify-between gap-2 p-4 overflow-x-auto border-b border-dashed">
                 <div className="flex gap-2 items-center">
-                    <a href="/">
+                    <a href="/" className="hidden lg:block mr-2">
                         <Image
                             src="/logo.svg"
-                            className="min-w-[30px] max-w-[30px] hidden md:block"
+                            className="min-w-[30px] max-w-[30px]"
                             alt="Logo"
                             width={32}
                             height={32}
                         />
                     </a>
-
-                    <Separator orientation="vertical" className="opacity-0 hidden md:block" />
 
                     {/* GUILD SELECTOR */}
                     {user ? (
@@ -403,7 +401,7 @@ export default function EditorNavbar({
                                 onClick={() => {
                                     setInspecting(!inspecting);
                                 }}
-                                className="hidden md:inline-flex"
+                                className="hidden lg:inline-flex"
                             >
                                 <SquareDashedMousePointerIcon />
                             </Button>

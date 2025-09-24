@@ -28,7 +28,7 @@ export default function Page() {
     return (
         <div className="h-[100svh] flex flex-col">
             {/* Desktop */}
-            <div className="hidden md:flex flex-1">
+            <div className="hidden lg:flex flex-1">
                 <ResizablePanelGroup direction="horizontal">
                     <ResizablePanel defaultSize={LEFT}>{editor}</ResizablePanel>
                     <ResizableHandle
@@ -40,7 +40,7 @@ export default function Page() {
             </div>
 
             {/* Mobile */}
-            <div className="flex flex-col md:hidden flex-1">
+            <div className="flex flex-col lg:hidden flex-1">
                 <Tabs
                     defaultValue="editor"
                     className="w-full gap-0"
