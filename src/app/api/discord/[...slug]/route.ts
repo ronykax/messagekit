@@ -65,7 +65,10 @@ class MessageKitClient extends Client {
                 if (templateDataError) {
                     const response: APIInteractionResponse = {
                         type: InteractionResponseType.ChannelMessageWithSource,
-                        data: { content: JSON.stringify(templateDataError) },
+                        data: {
+                            content: JSON.stringify(templateDataError),
+                            flags: MessageFlags.Ephemeral,
+                        },
                     };
 
                     return Response.json(response);
@@ -75,7 +78,9 @@ class MessageKitClient extends Client {
                     type: InteractionResponseType.ChannelMessageWithSource,
                     data: {
                         components: templateData.components,
-                        flags: MessageFlags.IsComponentsV2,
+                        flags:
+                            MessageFlags.IsComponentsV2 |
+                            (params.ephemeral ? MessageFlags.Ephemeral : 0),
                     },
                 };
 
