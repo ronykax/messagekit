@@ -40,7 +40,11 @@ export default function EditorPanel({
     const { user } = useUserStore();
 
     useEffect(() => {
+<<<<<<< HEAD
         if (!user?.id) return;
+=======
+        if (!user) return;
+>>>>>>> main
 
         const run = async () => {
             if (templateId === "new") {
@@ -76,7 +80,11 @@ export default function EditorPanel({
         };
 
         run();
+<<<<<<< HEAD
     }, [templateId, router, user?.id, setComponents]);
+=======
+    }, [templateId, router, user, setComponents]);
+>>>>>>> main
 
     return (
         <div className="max-h-[100svh] flex flex-col h-full">
