@@ -13,6 +13,7 @@ import {
     CommandList,
 } from "../ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Spinner } from "../ui/spinner";
 
 const supabase = createClient();
 
@@ -20,7 +21,7 @@ export default function ActionSelector({
     actions,
     setAction,
 }: {
-    actions?: Record<string, unknown>[];
+    actions?: Record<string, unknown>[] | null;
     setAction: (action: Record<string, unknown>) => void;
 }) {
     const pathname = usePathname();
@@ -29,10 +30,16 @@ export default function ActionSelector({
     const [open, setOpen] = useState(false);
     const [selectedValue, setSelectedValue] = useState("");
 
+    const [loading, setLoading] = useState(true);
+
     // Fetch actions
     useEffect(() => {
-        if (actions !== undefined) return;
+        if (actions !== undefined) {
+            return setLoading(false);
+        }
+
         if (!open) return;
+        if (ownActions !== null) return; // already fetched
 
         supabase
             .from("actions")
@@ -41,12 +48,13 @@ export default function ActionSelector({
             .limit(25)
             .then(({ data, error }) => {
                 if (error) {
-                    toast.error("Failed to fetch actions!");
+                    toast.error("Failed to fetch actions");
                 } else {
                     setOwnActions(data);
+                    setLoading(false);
                 }
             });
-    }, [actions, pathname, open]);
+    }, [actions, pathname, open, ownActions]);
 
     const currentActions = actions ?? ownActions ?? [];
 
@@ -70,7 +78,11 @@ export default function ActionSelector({
                 <Command>
                     <CommandInput placeholder="Search action..." />
                     <CommandList>
-                        <CommandEmpty>No action found</CommandEmpty>
+                        <CommandEmpty>
+                            {currentActions.length !== 0
+                                ? "No action found"
+                                : loading && <Spinner size="medium" />}
+                        </CommandEmpty>
                         <CommandGroup>
                             {currentActions.map((item) => (
                                 <CommandItem

@@ -1,6 +1,5 @@
 import {
     type APIButtonComponent,
-    type APIButtonComponentWithCustomId,
     type APIButtonComponentWithURL,
     type APIEmoji,
     type APISectionAccessoryComponent,
@@ -23,7 +22,7 @@ import { toComponentEmoji } from "@/utils/functions";
 import EmojiPicker from "../emoji-picker";
 import HelperText from "../helper-text";
 import NewBuilder from "../new-builder";
-import ActionSelector from "../selectors/action-selector";
+import ActionSelector from "../selectors/actions";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -123,18 +122,6 @@ export default function TextDisplay({
         return isButtonComponent(a) && a.style === ButtonStyle.Link;
     }
 
-    function isButtonWithCustomId(
-        a: APISectionAccessoryComponent | undefined,
-    ): a is APIButtonComponentWithCustomId {
-        return (
-            isButtonComponent(a) &&
-            (a.style === ButtonStyle.Primary ||
-                a.style === ButtonStyle.Secondary ||
-                a.style === ButtonStyle.Success ||
-                a.style === ButtonStyle.Danger)
-        );
-    }
-
     function buttonTypeToButtonStyle(type: string) {
         switch (type) {
             case "link":
@@ -169,17 +156,10 @@ export default function TextDisplay({
     const imageAltValue = isThumbnailComponent(accessory)
         ? (accessory.description ?? "")
         : imageAlt;
-    const _buttonLabelValue =
-        isButtonWithURL(accessory) || isButtonWithCustomId(accessory)
-            ? (accessory.label ?? "")
-            : buttonLabel;
     const buttonStyleValue = isButtonComponent(accessory)
         ? buttonStyleToButtonType(accessory.style)
         : buttonStyle;
     const buttonUrlValue = isButtonWithURL(accessory) ? accessory.url : buttonUrl;
-    const _buttonActionIdValue = isButtonWithCustomId(accessory)
-        ? accessory.custom_id
-        : buttonActionId;
 
     return (
         <NewBuilder

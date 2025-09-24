@@ -47,7 +47,7 @@ export default function ReplyToInteractionFormBody({ data, setData }: Props) {
                 <HelperText text="The message you want to reply with" />
             </div>
 
-            <Label className="hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-4 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-primary dark:has-[[aria-checked=true]]:bg-primary/15">
+            <Label className="hover:bg-accent/30 flex items-start gap-3 rounded-lg border p-4 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-primary dark:has-[[aria-checked=true]]:bg-primary/15">
                 <Checkbox
                     id="toggle-2"
                     checked={data.ephemeral}

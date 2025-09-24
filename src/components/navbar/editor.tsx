@@ -1,18 +1,28 @@
 import type { APIMessageTopLevelComponent } from "discord-api-types/v10";
 import {
+    ChevronRightIcon,
     DownloadIcon,
     EraserIcon,
+    HouseIcon,
+    MessageSquareIcon,
     PlusIcon,
     RefreshCwIcon,
     SaveIcon,
-    SettingsIcon,
     SquareDashedMousePointerIcon,
     UploadIcon,
 } from "lucide-react";
 import { nanoid } from "nanoid";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { type Dispatch, Fragment, type SetStateAction, useEffect, useRef, useState } from "react";
+import {
+    type Dispatch,
+    Fragment,
+    type SetStateAction,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { toast } from "sonner";
 import { useDataStore } from "@/lib/stores/data";
 import { useGuildStore } from "@/lib/stores/guild";
@@ -114,7 +124,7 @@ export default function EditorNavbar({
             .eq("uid", user.id)
             .limit(25)
             .then(({ data, error }) => {
-                if (error) toast.error("Failed to fetch messages!");
+                if (error) toast.error("Failed to fetch messages");
                 else setTemplates(data);
             });
 
@@ -124,6 +134,28 @@ export default function EditorNavbar({
 
         setFetched(true);
     }, [user, fetched, setTemplates, setGuilds, setFetched]);
+
+    // clear stored guild when guilds become empty
+    useEffect(() => {
+        if (guilds === null) return;
+
+        // if guilds loaded but empty -> clear stored guild
+        if (guilds.length === 0) {
+            setGuild(null);
+            return;
+        }
+
+        // if guild exists in storage but not in the fetched list -> clear it
+        if (guild && !guilds.some((g) => g.id === guild)) {
+            setGuild(null);
+        }
+    }, [guilds, guild, setGuild]);
+
+    const selectedGuildValue = useMemo(() => {
+        if (!guilds || guilds.length === 0) return undefined;
+        if (!guild) return undefined;
+        return guilds.some((g) => g.id === guild) ? guild : undefined;
+    }, [guilds, guild]);
 
     function handleExport() {
         const download = new Blob([JSON.stringify(components, null, 4)], {
@@ -164,10 +196,10 @@ export default function EditorNavbar({
         });
 
         if (error) {
-            return toast.error("Something went wrong!");
+            return toast.error("Something went wrong");
+        } else {
+            window.location.href = `/${randomTemplateId}`;
         }
-
-        window.location.href = `/${randomTemplateId}`;
     }
 
     async function handleUpdateMessage() {
@@ -181,9 +213,9 @@ export default function EditorNavbar({
         });
 
         if (error) {
-            return toast.error("Something went wrong!");
+            toast.error("Something went wrong");
         } else {
-            toast.success("Saved!");
+            toast.success("Saved");
         }
     }
 
@@ -203,14 +235,91 @@ export default function EditorNavbar({
 
                     <Separator orientation="vertical" className="opacity-0 hidden md:block" />
 
+                    {/* GUILD SELECTOR */}
+                    {user ? (
+                        <Select
+                            value={selectedGuildValue}
+                            onValueChange={(value) => setGuild(value ?? null)}
+                        >
+                            <SelectTrigger className="w-[200px]">
+                                <SelectValue
+                                    placeholder={
+                                        <div className="flex gap-2 items-center">
+                                            <HouseIcon />
+                                            <span>Select a guild</span>
+                                        </div>
+                                    }
+                                />
+                            </SelectTrigger>
+                            <SelectContent className="max-w-[200px]">
+                                <SelectGroup>
+                                    <SelectLabel className="flex justify-between">
+                                        <span>Guilds</span>
+                                        <Button
+                                            variant={"ghost"}
+                                            size="icon"
+                                            className="size-4"
+                                            asChild
+                                        >
+                                            <a href={"/auth/login?prompt=none"}>
+                                                <RefreshCwIcon />
+                                            </a>
+                                        </Button>
+                                    </SelectLabel>
+                                    {guilds?.map((guild) => (
+                                        <SelectItem value={guild.id} key={`${guild.id}`}>
+                                            <span className="overflow-ellipsis">
+                                                {guild.name as string}
+                                            </span>
+                                        </SelectItem>
+                                    ))}
+                                    {guilds === null && (
+                                        <SelectItem
+                                            className="text-xs justify-center p-6"
+                                            value="balls"
+                                            disabled
+                                        >
+                                            Failed to fetch guilds
+                                        </SelectItem>
+                                    )}
+                                    {guilds?.length === 0 && (
+                                        <SelectItem
+                                            className="text-xs justify-center p-6"
+                                            value="balls"
+                                            disabled
+                                        >
+                                            No guilds found
+                                        </SelectItem>
+                                    )}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    ) : user === undefined ? (
+                        guilds === null && <Skeleton className="w-[200px] h-full" />
+                    ) : null}
+
+                    <ChevronRightIcon className="size-4 opacity-75" />
+
                     {/* TEMPLATE SELECTOR */}
                     {user ? (
                         <Select
-                            defaultValue={templateId === "new" ? "balls" : templateId}
+                            value={
+                                templateId === "new" ||
+                                !templates?.some((t) => t.template_id === templateId)
+                                    ? undefined
+                                    : templateId
+                            }
                             onValueChange={(value) => router.push(`/${value}`)}
                         >
                             <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Select a message" />
+                                <SelectValue
+                                    placeholder={
+                                        <div className="flex gap-2 items-center">
+                                            <MessageSquareIcon />
+                                            <span>Select a message</span>
+                                        </div>
+                                    }
+                                />
                             </SelectTrigger>
                             <SelectContent className="max-w-[200px]">
                                 <SelectGroup>
@@ -247,62 +356,9 @@ export default function EditorNavbar({
                         templates === null && <Skeleton className="w-[200px] h-full" />
                     ) : null}
 
-                    {/* GUILD SELECTOR */}
-                    {user ? (
-                        <Select value={guild ?? "balls"} onValueChange={(value) => setGuild(value)}>
-                            <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Select a guild" />
-                            </SelectTrigger>
-                            <SelectContent className="max-w-[200px]">
-                                <SelectGroup>
-                                    <SelectLabel className="flex justify-between">
-                                        <span>Guilds</span>
-                                        <Button
-                                            variant={"ghost"}
-                                            size="icon"
-                                            className="size-4"
-                                            asChild
-                                        >
-                                            <a href={"/auth/login?prompt=none"}>
-                                                <RefreshCwIcon />
-                                            </a>
-                                        </Button>
-                                    </SelectLabel>
-                                    {guilds?.map((guild) => (
-                                        <SelectItem value={guild.id} key={`${guild.id}`}>
-                                            <span className="overflow-ellipsis">
-                                                {guild.name as string}
-                                            </span>
-                                        </SelectItem>
-                                    ))}
-                                    {guilds === null && (
-                                        <SelectItem
-                                            className="text-xs justify-center p-6"
-                                            value="balls"
-                                            disabled
-                                        >
-                                            No guilds found
-                                        </SelectItem>
-                                    )}
-                                    {guilds?.length === 0 && (
-                                        <SelectItem
-                                            className="text-xs justify-center p-6"
-                                            value="balls"
-                                            disabled
-                                        >
-                                            No guilds found
-                                        </SelectItem>
-                                    )}
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-                    ) : user === undefined ? (
-                        guilds === null && <Skeleton className="w-[200px] h-full" />
-                    ) : null}
-
-                    <Button variant="outline" size="icon">
+                    {/* <Button variant="outline" size="icon">
                         <SettingsIcon />
-                    </Button>
+                    </Button> */}
                 </div>
 
                 <div className="flex gap-2">
@@ -401,6 +457,7 @@ export default function EditorNavbar({
 
                     <Separator orientation="vertical" />
 
+                    {/* ACTIONS BUTTON */}
                     <ActionsButton templateId={templateId} />
 
                     {/* ADD COMPONENT BUTTON */}

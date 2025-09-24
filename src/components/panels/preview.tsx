@@ -22,9 +22,9 @@ import { useOutputStore } from "@/lib/stores/output";
 import { useUserStore } from "@/lib/stores/user";
 import { cn } from "@/lib/utils";
 import type { SendOptions } from "@/utils/types";
-import ChannelSelector from "../channel-selector";
 import HelperText from "../helper-text";
 import PreviewWrapper from "../preview/wrapper";
+import ChannelSelector from "../selectors/channels";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -233,7 +233,7 @@ function SendMessageButton() {
                 if (data.success) {
                     toast.success("Sent!");
                 } else {
-                    toast.error("Something went wrong!", {
+                    toast.error("Something went wrong", {
                         description: data.error.message ?? null,
                     });
                 }

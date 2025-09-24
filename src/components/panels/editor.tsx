@@ -31,15 +31,13 @@ import EditorNavbar from "../navbar/editor";
 export default function EditorPanel({
     components,
     setComponents,
-    // templateId,
 }: {
     components: APIMessageTopLevelComponent[];
     setComponents: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
-    // templateId: string;
 }) {
     const router = useRouter();
-
     const { message: templateId } = useParams();
+
     const { user } = useUserStore();
 
     useEffect(() => {
