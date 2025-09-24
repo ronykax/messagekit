@@ -6,7 +6,7 @@ type GuildStore = {
 };
 
 export const useGuildStore = create<GuildStore>((set) => ({
-    guild: null,
+    guild: typeof window !== "undefined" ? localStorage.getItem("guildId") : null,
     setGuild: (guild) => {
         if (guild) {
             localStorage.setItem("guildId", guild);
@@ -17,5 +17,5 @@ export const useGuildStore = create<GuildStore>((set) => ({
     },
 }));
 
-// optional helper to get persisted guildId directly
-export const getStoredGuildId = () => localStorage.getItem("guildId");
+export const getStoredGuildId = () =>
+    typeof window !== "undefined" ? localStorage.getItem("guildId") : null;

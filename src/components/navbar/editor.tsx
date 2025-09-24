@@ -1,21 +1,30 @@
-import type {
-    APIMessageTopLevelComponent,
-    RESTAPIPartialCurrentUserGuild,
-} from "discord-api-types/v10";
+import type { APIMessageTopLevelComponent } from "discord-api-types/v10";
 import {
+    ChevronRightIcon,
     DownloadIcon,
     EraserIcon,
+    HouseIcon,
+    MessageSquareIcon,
     PlusIcon,
+    RefreshCwIcon,
     SaveIcon,
-    SettingsIcon,
     SquareDashedMousePointerIcon,
     UploadIcon,
 } from "lucide-react";
 import { nanoid } from "nanoid";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { type Dispatch, Fragment, type SetStateAction, useEffect, useRef, useState } from "react";
+import {
+    type Dispatch,
+    Fragment,
+    type SetStateAction,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { toast } from "sonner";
+import { useDataStore } from "@/lib/stores/data";
 import { useGuildStore } from "@/lib/stores/guild";
 import { useInspectingStore } from "@/lib/stores/inspecting";
 import { useUserStore } from "@/lib/stores/user";
@@ -69,22 +78,29 @@ export default function EditorNavbar({
     templateId: string;
 }) {
     const router = useRouter();
-    const [fetched, setFetched] = useState(false);
 
     // stores
-    const { inspecting, setInspecting } = useInspectingStore();
     const { user } = useUserStore();
-    const { setGuild } = useGuildStore();
+    const { inspecting, setInspecting } = useInspectingStore();
+    const { guild, setGuild } = useGuildStore();
 
-    // templates
-    const [templates, setTemplates] = useState<Record<string, unknown>[] | null>(null);
+    const {
+        fetched,
+        setFetched,
+
+        // templates
+        templates,
+        setTemplates,
+
+        // guilds
+        guilds,
+        setGuilds,
+    } = useDataStore();
+
+    // NEW TEMPLATE
     const [showNewTemplateDialog, setShowNewTemplateDialog] = useState(false);
     const [newTemplateName, setNewTemplateName] = useState("");
 
-    // guilds
-    const [guilds, setGuilds] = useState<RESTAPIPartialCurrentUserGuild[] | null>(null);
-
-    // misc
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const addComponent = <T extends APIMessageTopLevelComponent>(component: T) =>
@@ -105,29 +121,47 @@ export default function EditorNavbar({
         supabase
             .from("templates")
             .select("template_id, name")
-            .limit(10)
+            .eq("uid", user.id)
+            .limit(25)
             .then(({ data, error }) => {
-                if (error) {
-                    toast.error("Failed to fetch messages!");
-                } else {
-                    setTemplates(data);
-                }
+                if (error) toast.error("Failed to fetch messages");
+                else setTemplates(data);
             });
 
         fetch("/api/discord/guilds")
             .then((res) => res.json())
-            .then((data) => {
-                console.log(data);
-                setGuilds(data.guilds);
-            });
+            .then((data) => setGuilds(data.guilds));
 
         setFetched(true);
-    }, [user, fetched]);
+    }, [user, fetched, setTemplates, setGuilds, setFetched]);
+
+    // clear stored guild when guilds become empty
+    useEffect(() => {
+        if (guilds === null) return;
+
+        // if guilds loaded but empty -> clear stored guild
+        if (guilds.length === 0) {
+            setGuild(null);
+            return;
+        }
+
+        // if guild exists in storage but not in the fetched list -> clear it
+        if (guild && !guilds.some((g) => g.id === guild)) {
+            setGuild(null);
+        }
+    }, [guilds, guild, setGuild]);
+
+    const selectedGuildValue = useMemo(() => {
+        if (!guilds || guilds.length === 0) return undefined;
+        if (!guild) return undefined;
+        return guilds.some((g) => g.id === guild) ? guild : undefined;
+    }, [guilds, guild]);
 
     function handleExport() {
         const download = new Blob([JSON.stringify(components, null, 4)], {
             type: "application/json",
         });
+
         const url = URL.createObjectURL(download);
 
         const a = document.createElement("a");
@@ -156,16 +190,16 @@ export default function EditorNavbar({
             template_id: randomTemplateId,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            user: user.id,
+            uid: user.id,
             components: components,
             name: newTemplateName,
         });
 
         if (error) {
-            return toast.error("Something went wrong!");
+            return toast.error("Something went wrong");
+        } else {
+            window.location.href = `/${randomTemplateId}`;
         }
-
-        window.location.href = `/${randomTemplateId}`;
     }
 
     async function handleUpdateMessage() {
@@ -175,13 +209,13 @@ export default function EditorNavbar({
             template_id: templateId,
             components: components,
             updated_at: new Date().toISOString(),
-            user: user.id,
+            uid: user.id,
         });
 
         if (error) {
-            return toast.error("Something went wrong!");
+            toast.error("Something went wrong");
         } else {
-            toast.success("Saved!");
+            toast.success("Saved");
         }
     }
 
@@ -189,26 +223,103 @@ export default function EditorNavbar({
         <>
             <div className="flex justify-between gap-2 p-4 overflow-x-auto border-b border-dashed">
                 <div className="flex gap-2 items-center">
-                    <a href="/">
+                    <a href="/" className="hidden lg:block mr-2">
                         <Image
                             src="/logo.svg"
-                            className="min-w-[30px] max-w-[30px] hidden md:block"
+                            className="min-w-[30px] max-w-[30px]"
                             alt="Logo"
                             width={32}
                             height={32}
                         />
                     </a>
 
-                    <Separator orientation="vertical" className="opacity-0 hidden md:block" />
+                    {/* GUILD SELECTOR */}
+                    {user ? (
+                        <Select
+                            value={selectedGuildValue}
+                            onValueChange={(value) => setGuild(value ?? null)}
+                        >
+                            <SelectTrigger className="w-[200px]">
+                                <SelectValue
+                                    placeholder={
+                                        <div className="flex gap-2 items-center">
+                                            <HouseIcon />
+                                            <span>Select a guild</span>
+                                        </div>
+                                    }
+                                />
+                            </SelectTrigger>
+                            <SelectContent className="max-w-[200px]">
+                                <SelectGroup>
+                                    <SelectLabel className="flex justify-between">
+                                        <span>Guilds</span>
+                                        <Button
+                                            variant={"ghost"}
+                                            size="icon"
+                                            className="size-4"
+                                            asChild
+                                        >
+                                            <a
+                                                href={`/auth/login?prompt=none&redirect=/${templateId}`}
+                                            >
+                                                <RefreshCwIcon />
+                                            </a>
+                                        </Button>
+                                    </SelectLabel>
+                                    {guilds?.map((guild) => (
+                                        <SelectItem value={guild.id} key={`${guild.id}`}>
+                                            <span className="overflow-ellipsis">
+                                                {guild.name as string}
+                                            </span>
+                                        </SelectItem>
+                                    ))}
+                                    {guilds === null && (
+                                        <SelectItem
+                                            className="text-xs justify-center p-6"
+                                            value="balls"
+                                            disabled
+                                        >
+                                            Failed to fetch guilds
+                                        </SelectItem>
+                                    )}
+                                    {guilds?.length === 0 && (
+                                        <SelectItem
+                                            className="text-xs justify-center p-6"
+                                            value="balls"
+                                            disabled
+                                        >
+                                            No guilds found
+                                        </SelectItem>
+                                    )}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    ) : user === undefined ? (
+                        guilds === null && <Skeleton className="w-[200px] h-full" />
+                    ) : null}
+
+                    {user && <ChevronRightIcon className="size-4 opacity-75" />}
 
                     {/* TEMPLATE SELECTOR */}
-                    {user && (
+                    {user ? (
                         <Select
-                            defaultValue={templateId === "new" ? undefined : templateId}
+                            value={
+                                templateId === "new" ||
+                                !templates?.some((t) => t.template_id === templateId)
+                                    ? undefined
+                                    : templateId
+                            }
                             onValueChange={(value) => router.push(`/${value}`)}
                         >
                             <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Select a message" />
+                                <SelectValue
+                                    placeholder={
+                                        <div className="flex gap-2 items-center">
+                                            <MessageSquareIcon />
+                                            <span>Select a message</span>
+                                        </div>
+                                    }
+                                />
                             </SelectTrigger>
                             <SelectContent className="max-w-[200px]">
                                 <SelectGroup>
@@ -235,48 +346,19 @@ export default function EditorNavbar({
                                             </span>
                                         </SelectItem>
                                     ))}
+                                    {templates === null && (
+                                        <SelectItem value="balls">Select a message</SelectItem>
+                                    )}
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
-                    )}
-                    {user === undefined && <Skeleton className="w-[200px] h-full" />}
+                    ) : user === undefined ? (
+                        templates === null && <Skeleton className="w-[200px] h-full" />
+                    ) : null}
 
-                    {/* GUILD SELECTOR */}
-                    {user && (
-                        <Select onValueChange={(value) => setGuild(value)}>
-                            <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Select a guild" />
-                            </SelectTrigger>
-                            <SelectContent className="max-w-[200px]">
-                                <SelectGroup>
-                                    <SelectLabel className="flex justify-between">
-                                        <span>Guilds</span>
-                                        <Button
-                                            variant={"ghost"}
-                                            size="icon"
-                                            className="size-4"
-                                            asChild
-                                        >
-                                            <a href={"https://discord.gg/5bBM2TVDD3"}>
-                                                <PlusIcon />
-                                            </a>
-                                        </Button>
-                                    </SelectLabel>
-                                    {guilds?.map((guild) => (
-                                        <SelectItem value={guild.id} key={`${guild.id}`}>
-                                            <span className="overflow-ellipsis">
-                                                {guild.name as string}
-                                            </span>
-                                        </SelectItem>
-                                    ))}
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-                    )}
-
-                    <Button variant="outline" size="icon">
+                    {/* <Button variant="outline" size="icon">
                         <SettingsIcon />
-                    </Button>
+                    </Button> */}
                 </div>
 
                 <div className="flex gap-2">
@@ -319,7 +401,7 @@ export default function EditorNavbar({
                                 onClick={() => {
                                     setInspecting(!inspecting);
                                 }}
-                                className="hidden md:inline-flex"
+                                className="hidden lg:inline-flex"
                             >
                                 <SquareDashedMousePointerIcon />
                             </Button>
@@ -375,22 +457,8 @@ export default function EditorNavbar({
 
                     <Separator orientation="vertical" />
 
-                    {/* ACTIONS LINK BUTTON */}
-                    {/* <Button variant="ghost" asChild={templateId !== "new"} disabled={templateId === "new"}>
-                        {templateId === "new" ? (
-                            <>
-                                <PickaxeIcon />
-                                Actions
-                            </>
-                        ) : (
-                            <Link href={`${templateId}/actions`}>
-                                <PickaxeIcon />
-                                Actions
-                            </Link>
-                        )}
-                    </Button> */}
-
-                    <ActionsButton templateId={templateId} templates={templates} />
+                    {/* ACTIONS BUTTON */}
+                    <ActionsButton templateId={templateId} />
 
                     {/* ADD COMPONENT BUTTON */}
                     <DropdownMenu>
@@ -401,7 +469,6 @@ export default function EditorNavbar({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            {/* <DropdownMenuLabel className="text-xs text-muted-foreground">Content</DropdownMenuLabel> */}
                             {componentsList.map((component, index) => (
                                 <Fragment key={`${component.type}-${index}`}>
                                     {component.name === "Container" && (
@@ -424,7 +491,7 @@ export default function EditorNavbar({
                                         onClick={component.onClick}
                                         disabled={component.disabled}
                                     >
-                                        <component.icon />
+                                        <component.icon className="text-muted-foreground" />
                                         {component.name}
                                     </DropdownMenuItem>
                                 </Fragment>

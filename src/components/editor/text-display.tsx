@@ -1,6 +1,5 @@
 import {
     type APIButtonComponent,
-    type APIButtonComponentWithCustomId,
     type APIButtonComponentWithURL,
     type APIEmoji,
     type APISectionAccessoryComponent,
@@ -21,7 +20,9 @@ import {
 import { useMemo, useState } from "react";
 import { toComponentEmoji } from "@/utils/functions";
 import EmojiPicker from "../emoji-picker";
+import HelperText from "../helper-text";
 import NewBuilder from "../new-builder";
+import ActionSelector from "../selectors/actions";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -121,18 +122,6 @@ export default function TextDisplay({
         return isButtonComponent(a) && a.style === ButtonStyle.Link;
     }
 
-    function isButtonWithCustomId(
-        a: APISectionAccessoryComponent | undefined,
-    ): a is APIButtonComponentWithCustomId {
-        return (
-            isButtonComponent(a) &&
-            (a.style === ButtonStyle.Primary ||
-                a.style === ButtonStyle.Secondary ||
-                a.style === ButtonStyle.Success ||
-                a.style === ButtonStyle.Danger)
-        );
-    }
-
     function buttonTypeToButtonStyle(type: string) {
         switch (type) {
             case "link":
@@ -167,17 +156,10 @@ export default function TextDisplay({
     const imageAltValue = isThumbnailComponent(accessory)
         ? (accessory.description ?? "")
         : imageAlt;
-    const _buttonLabelValue =
-        isButtonWithURL(accessory) || isButtonWithCustomId(accessory)
-            ? (accessory.label ?? "")
-            : buttonLabel;
     const buttonStyleValue = isButtonComponent(accessory)
         ? buttonStyleToButtonType(accessory.style)
         : buttonStyle;
     const buttonUrlValue = isButtonWithURL(accessory) ? accessory.url : buttonUrl;
-    const buttonActionIdValue = isButtonWithCustomId(accessory)
-        ? accessory.custom_id
-        : buttonActionId;
 
     return (
         <NewBuilder
@@ -320,15 +302,15 @@ export default function TextDisplay({
                                 ) : (
                                     <div className="flex flex-col gap-2">
                                         <Label htmlFor="btn-action-id">
-                                            Action ID
+                                            Action
                                             <span className="text-destructive">*</span>
                                         </Label>
-                                        <Input
-                                            placeholder="Enter your action ID"
-                                            value={buttonActionIdValue}
-                                            id="btn-action-id"
-                                            onChange={(e) => setButtonActionId(e.target.value)}
+                                        <ActionSelector
+                                            setAction={(action) =>
+                                                setButtonActionId(action.custom_id as string)
+                                            }
                                         />
+                                        <HelperText text="Select an action that this button should trigger" />
                                     </div>
                                 )}
                             </TabsContent>

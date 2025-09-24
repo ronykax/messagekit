@@ -22,8 +22,9 @@ import { useOutputStore } from "@/lib/stores/output";
 import { useUserStore } from "@/lib/stores/user";
 import { cn } from "@/lib/utils";
 import type { SendOptions } from "@/utils/types";
-import ChannelSelector from "../channel-selector";
+import HelperText from "../helper-text";
 import PreviewWrapper from "../preview/wrapper";
+import ChannelSelector from "../selectors/channels";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -232,7 +233,7 @@ function SendMessageButton() {
                 if (data.success) {
                     toast.success("Sent!");
                 } else {
-                    toast.error("Something went wrong!", {
+                    toast.error("Something went wrong", {
                         description: data.error.message ?? null,
                     });
                 }
@@ -296,9 +297,7 @@ function SendMessageButton() {
                             onChange={(e) => setWebhookUrl(e.target.value)}
                             className="wrap-anywhere"
                         />
-                        <p className="text-xs text-muted-foreground">
-                            Non-link buttons cannot be sent through webhooks.
-                        </p>
+                        <HelperText text="Non-link buttons cannot be sent through webhooks." />
                     </div>
                     <div
                         className={cn(
@@ -310,9 +309,7 @@ function SendMessageButton() {
                             Channel<span className="text-destructive">*</span>
                         </Label>
                         <ChannelSelector onChannelChange={setSelectedChannel} />
-                        <p className="text-xs text-muted-foreground">
-                            Make sure Message Kit can send messages in the selected channel.
-                        </p>
+                        <HelperText text="Make sure Message Kit can send messages in the selected channel." />
                     </div>
                 </Tabs>
                 <DialogFooter>

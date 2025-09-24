@@ -4,6 +4,7 @@ import {
     type APIContainerComponent,
     type APIFileComponent,
     type APIMediaGalleryComponent,
+    type APIMessageTopLevelComponent,
     type APISeparatorComponent,
     type APIStringSelectComponent,
     type APITextDisplayComponent,
@@ -30,7 +31,59 @@ export const motionProps: MotionProps = {
     transition: { duration: 0.1 },
 };
 
-export const defaultComponents = [];
+export const defaultComponents: APIMessageTopLevelComponent[] = [
+    {
+        id: 500528667,
+        type: 10,
+        content:
+            "# Create modular, interactive messages\nBuild interactive messages with a simple editor, live preview, and flexible sending options so you can focus on what you're saying, not how to format it.",
+    },
+    {
+        id: 869213619,
+        type: 17,
+        components: [
+            {
+                id: 843217988,
+                type: 12,
+                items: [
+                    {
+                        media: {
+                            url: "https://messagekit.app/example-header.png",
+                        },
+                        description: "header image",
+                    },
+                ],
+            },
+            {
+                id: 280096184,
+                type: 10,
+                content:
+                    "# Getting started\n- Install Message Kit in your server.\n- Click **Add Component** at the top of this pane and choose one.\n- Customize the component as you like.\n- Send it! You can send your message via our bot or with webhooks.",
+            },
+        ],
+        accent_color: 5727743,
+    },
+    {
+        id: 724873915,
+        type: 1,
+        components: [
+            {
+                id: 277957816,
+                type: 2,
+                label: "Support Server",
+                style: 5,
+                url: "https://discord.gg/5bBM2TVDD3",
+            },
+            {
+                id: 172033159,
+                type: 2,
+                label: "Donate",
+                style: 5,
+                url: "https://ko-fi.com/ronykax",
+            },
+        ],
+    },
+];
 
 export const componentDescriptors = [
     {

@@ -76,7 +76,9 @@ export default function NewBuilder({
                             ) : (
                                 <ChevronDownIcon className="hidden group-hover:block" />
                             )}
-                            <span className="block group-hover:hidden">{icon}</span>
+                            <span className="block group-hover:hidden text-muted-foreground">
+                                {icon}
+                            </span>
                         </Button>
                         <span className="font-medium text-sm -ml-1">{name}</span>
                         {helperText && (

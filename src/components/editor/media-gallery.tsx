@@ -62,7 +62,7 @@ export default function MediaGallery({
         if (!newFiles) return;
 
         if (newFiles.length >= 10) {
-            toast.error("You can only upload a maximum of 10 files.");
+            toast.error("You can only upload a maximum of 10 files");
             return;
         }
 
