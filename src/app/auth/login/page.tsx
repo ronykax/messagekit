@@ -12,7 +12,7 @@ function LoginClient() {
         supabase.auth.signInWithOAuth({
             provider: "discord",
             options: {
-                redirectTo: `${location.origin}/auth/callback`,
+                redirectTo: `${location.origin}/auth/callback?redirect=${encodeURIComponent(searchParams.get("redirect") || "/")}`,
                 scopes: "identify email guilds",
                 queryParams: {
                     prompt: searchParams.get("prompt") || "consent",

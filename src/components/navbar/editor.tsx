@@ -261,7 +261,9 @@ export default function EditorNavbar({
                                             className="size-4"
                                             asChild
                                         >
-                                            <a href={"/auth/login?prompt=none"}>
+                                            <a
+                                                href={`/auth/login?prompt=none&redirect=/${templateId}`}
+                                            >
                                                 <RefreshCwIcon />
                                             </a>
                                         </Button>
@@ -298,7 +300,7 @@ export default function EditorNavbar({
                         guilds === null && <Skeleton className="w-[200px] h-full" />
                     ) : null}
 
-                    <ChevronRightIcon className="size-4 opacity-75" />
+                    {user && <ChevronRightIcon className="size-4 opacity-75" />}
 
                     {/* TEMPLATE SELECTOR */}
                     {user ? (
