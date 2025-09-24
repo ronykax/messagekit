@@ -19,7 +19,6 @@ import { createClient } from "@/lib/supabase/client";
 import { defaultComponents } from "@/utils/constants";
 import { moveItem, randomNumber, removeAt, updateAt } from "@/utils/functions";
 import ComponentsValidator from "../components-validator";
-// editor component items
 import ButtonGroup from "../editor/button-group";
 import Container from "../editor/container";
 import File from "../editor/file";
@@ -41,7 +40,7 @@ export default function EditorPanel({
     const { user } = useUserStore();
 
     useEffect(() => {
-        if (!user) return;
+        if (!user?.id) return;
 
         const run = async () => {
             if (templateId === "new") {
@@ -77,7 +76,7 @@ export default function EditorPanel({
         };
 
         run();
-    }, [templateId, router, user, setComponents]);
+    }, [templateId, router, user?.id, setComponents]);
 
     return (
         <div className="max-h-[100svh] flex flex-col h-full">
