@@ -6,6 +6,7 @@ import { useUserStore } from "@/lib/stores/user";
 import { createClient } from "@/lib/supabase/client";
 import { type BotActionBody, BotActionSchema, BotActions } from "@/utils/types";
 import { DataTable } from "./data-table";
+import ReplyToInteractionFormBody from "./forms/reply-to-interaction";
 import SendToChannelFormBody from "./forms/send-to-channel";
 import HelperText from "./helper-text";
 import RequiredIndicator from "./required-indicator";
@@ -38,7 +39,6 @@ import {
     SheetHeader,
     SheetTitle,
 } from "./ui/sheet";
-import ReplyToInteractionFormBody from "./forms/reply-to-interaction";
 
 const actionOptions = [
     { label: "Send to channel", type: BotActions.SendToChannel },
@@ -276,7 +276,7 @@ function FormBody({
         case BotActions.SendToChannel:
             return <SendToChannelFormBody data={actionData} setData={setActionData} />;
         case BotActions.ReplyToInteraction:
-            return <ReplyToInteractionFormBody data={actionData} setData={setActionData} />
+            return <ReplyToInteractionFormBody data={actionData} setData={setActionData} />;
         default:
             return null;
     }

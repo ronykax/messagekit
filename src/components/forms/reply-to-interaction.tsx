@@ -1,6 +1,3 @@
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import ChannelSelector from "@/components/channel-selector";
 import HelperText from "@/components/helper-text";
 import RequiredIndicator from "@/components/required-indicator";
 import { Label } from "@/components/ui/label";
@@ -11,8 +8,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { createClient } from "@/lib/supabase/client";
-import { BotActionBody, BotActions } from "@/utils/types";
+import { useDataStore } from "@/lib/stores/data";
+import type { BotActionBody, BotActions } from "@/utils/types";
 import { Checkbox } from "../ui/checkbox";
 
 interface Props {
@@ -20,29 +17,8 @@ interface Props {
     setData: React.Dispatch<React.SetStateAction<BotActionBody | null>>;
 }
 
-const supabase = createClient();
-
 export default function ReplyToInteractionFormBody({ data, setData }: Props) {
-    const [templates, setTemplates] = useState<Record<string, unknown>[]>();
-
-    useEffect(() => {
-        supabase
-            .from("templates")
-            .select("template_id, name")
-            .limit(25)
-            .then(({ data, error }) => {
-                if (error) {
-                    toast.error("Failed to fetch messages!");
-                } else {
-                    console.log("fetched messages:", data);
-                    setTemplates(data);
-                }
-            });
-    }, []);
-
-    useEffect(() => {
-        console.log("actiondata:", data);
-    }, [data]);
+    const { templates } = useDataStore();
 
     return (
         <div className="flex flex-col gap-6">

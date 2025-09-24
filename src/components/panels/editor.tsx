@@ -1,3 +1,5 @@
+"use client";
+
 import {
     type APIActionRowComponent,
     type APIButtonComponent,
@@ -10,7 +12,11 @@ import {
     SeparatorSpacingSize,
 } from "discord-api-types/v10";
 import { AnimatePresence } from "motion/react";
-import type { Dispatch, SetStateAction } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { type Dispatch, type SetStateAction, useEffect } from "react";
+import { useUserStore } from "@/lib/stores/user";
+import { createClient } from "@/lib/supabase/client";
+import { defaultComponents } from "@/utils/constants";
 import { moveItem, randomNumber, removeAt, updateAt } from "@/utils/functions";
 import ComponentsValidator from "../components-validator";
 // editor component items
@@ -25,18 +31,62 @@ import EditorNavbar from "../navbar/editor";
 export default function EditorPanel({
     components,
     setComponents,
-    templateId,
+    // templateId,
 }: {
     components: APIMessageTopLevelComponent[];
     setComponents: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
-    templateId: string;
+    // templateId: string;
 }) {
+    const router = useRouter();
+
+    const { message: templateId } = useParams();
+    const { user } = useUserStore();
+
+    useEffect(() => {
+        if (!user) return;
+
+        const run = async () => {
+            if (templateId === "new") {
+                const saved = localStorage.getItem("output-json");
+
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+
+                    if (Array.isArray(parsed)) {
+                        setComponents(parsed);
+                    }
+                } else {
+                    setComponents(defaultComponents);
+                }
+
+                return;
+            }
+
+            const supabase = createClient();
+
+            const { data, error } = await supabase
+                .from("templates")
+                .select("*")
+                .filter("template_id", `eq`, templateId)
+                .eq("uid", user.id)
+                .single();
+
+            if (error) {
+                router.push("/new");
+            } else {
+                return setComponents(data.components);
+            }
+        };
+
+        run();
+    }, [templateId, router, user, setComponents]);
+
     return (
         <div className="max-h-[100svh] flex flex-col h-full">
             <EditorNavbar
                 setComponents={setComponents}
                 components={components}
-                templateId={templateId}
+                templateId={`${templateId}`}
             />
             <div className="p-4 flex flex-col gap-4 flex-1 overflow-y-auto">
                 <AnimatePresence>

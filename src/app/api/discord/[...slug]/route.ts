@@ -24,7 +24,7 @@ class MessageKitClient extends Client {
         }
 
         if (interaction.type === InteractionType.MessageComponent) {
-            const supabase = await createClient();
+            const supabase = await createClient(true);
 
             const { data: actionData, error: actionDataError } = await supabase
                 .from("actions")

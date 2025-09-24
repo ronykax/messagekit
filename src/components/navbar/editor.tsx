@@ -1,7 +1,4 @@
-import type {
-    APIMessageTopLevelComponent,
-    RESTAPIPartialCurrentUserGuild,
-} from "discord-api-types/v10";
+import type { APIMessageTopLevelComponent } from "discord-api-types/v10";
 import {
     DownloadIcon,
     EraserIcon,
@@ -17,6 +14,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type Dispatch, Fragment, type SetStateAction, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useDataStore } from "@/lib/stores/data";
 import { useGuildStore } from "@/lib/stores/guild";
 import { useInspectingStore } from "@/lib/stores/inspecting";
 import { useUserStore } from "@/lib/stores/user";
@@ -70,22 +68,29 @@ export default function EditorNavbar({
     templateId: string;
 }) {
     const router = useRouter();
-    const [fetched, setFetched] = useState(false);
 
     // stores
-    const { inspecting, setInspecting } = useInspectingStore();
     const { user } = useUserStore();
+    const { inspecting, setInspecting } = useInspectingStore();
     const { guild, setGuild } = useGuildStore();
 
-    // templates
-    const [templates, setTemplates] = useState<Record<string, unknown>[] | null>(null);
+    const {
+        fetched,
+        setFetched,
+
+        // templates
+        templates,
+        setTemplates,
+
+        // guilds
+        guilds,
+        setGuilds,
+    } = useDataStore();
+
+    // NEW TEMPLATE
     const [showNewTemplateDialog, setShowNewTemplateDialog] = useState(false);
     const [newTemplateName, setNewTemplateName] = useState("");
 
-    // guilds
-    const [guilds, setGuilds] = useState<RESTAPIPartialCurrentUserGuild[] | null>(null);
-
-    // misc
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const addComponent = <T extends APIMessageTopLevelComponent>(component: T) =>
@@ -109,26 +114,22 @@ export default function EditorNavbar({
             .eq("uid", user.id)
             .limit(25)
             .then(({ data, error }) => {
-                if (error) {
-                    toast.error("Failed to fetch messages!");
-                } else {
-                    setTemplates(data);
-                }
+                if (error) toast.error("Failed to fetch messages!");
+                else setTemplates(data);
             });
 
         fetch("/api/discord/guilds")
             .then((res) => res.json())
-            .then((data) => {
-                setGuilds(data.guilds);
-            });
+            .then((data) => setGuilds(data.guilds));
 
         setFetched(true);
-    }, [user, fetched]);
+    }, [user, fetched, setTemplates, setGuilds, setFetched]);
 
     function handleExport() {
         const download = new Blob([JSON.stringify(components, null, 4)], {
             type: "application/json",
         });
+
         const url = URL.createObjectURL(download);
 
         const a = document.createElement("a");
@@ -203,9 +204,9 @@ export default function EditorNavbar({
                     <Separator orientation="vertical" className="opacity-0 hidden md:block" />
 
                     {/* TEMPLATE SELECTOR */}
-                    {user && (
+                    {user ? (
                         <Select
-                            defaultValue={templateId === "new" ? undefined : templateId}
+                            defaultValue={templateId === "new" ? "balls" : templateId}
                             onValueChange={(value) => router.push(`/${value}`)}
                         >
                             <SelectTrigger className="w-[200px]">
@@ -236,18 +237,19 @@ export default function EditorNavbar({
                                             </span>
                                         </SelectItem>
                                     ))}
+                                    {templates === null && (
+                                        <SelectItem value="balls">Select a message</SelectItem>
+                                    )}
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
-                    )}
-                    {user === undefined && <Skeleton className="w-[200px] h-full" />}
+                    ) : user === undefined ? (
+                        templates === null && <Skeleton className="w-[200px] h-full" />
+                    ) : null}
 
                     {/* GUILD SELECTOR */}
-                    {user && (
-                        <Select
-                            value={guild ?? undefined}
-                            onValueChange={(value) => setGuild(value)}
-                        >
+                    {user ? (
+                        <Select value={guild ?? "balls"} onValueChange={(value) => setGuild(value)}>
                             <SelectTrigger className="w-[200px]">
                                 <SelectValue placeholder="Select a guild" />
                             </SelectTrigger>
@@ -294,7 +296,9 @@ export default function EditorNavbar({
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
-                    )}
+                    ) : user === undefined ? (
+                        guilds === null && <Skeleton className="w-[200px] h-full" />
+                    ) : null}
 
                     <Button variant="outline" size="icon">
                         <SettingsIcon />
@@ -430,7 +434,7 @@ export default function EditorNavbar({
                                         onClick={component.onClick}
                                         disabled={component.disabled}
                                     >
-                                        <component.icon />
+                                        <component.icon className="text-muted-foreground" />
                                         {component.name}
                                     </DropdownMenuItem>
                                 </Fragment>
