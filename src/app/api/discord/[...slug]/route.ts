@@ -3,6 +3,7 @@
 import {
     type APIInteraction,
     type APIInteractionResponse,
+    APIMessageTopLevelComponent,
     Client,
     InteractionResponseType,
     InteractionType,
@@ -77,7 +78,8 @@ class MessageKitClient extends Client {
                 const response: APIInteractionResponse = {
                     type: InteractionResponseType.ChannelMessageWithSource,
                     data: {
-                        components: templateData.components,
+                        components:
+                            templateData.components as unknown as APIMessageTopLevelComponent[],
                         flags:
                             MessageFlags.IsComponentsV2 |
                             (params.ephemeral ? MessageFlags.Ephemeral : 0),

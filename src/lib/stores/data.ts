@@ -1,14 +1,18 @@
 import type { RESTAPIPartialCurrentUserGuild } from "discord-api-types/v10";
 import { create } from "zustand";
 
-type Template = { template_id: string; name: string };
+type Template = {
+    template_id: string;
+    name: string | null;
+};
+
 type Guild = RESTAPIPartialCurrentUserGuild;
 
 type State = {
     templates: Template[] | null;
     guilds: Guild[] | null;
     fetched: boolean;
-    setTemplates: (templates: Template[]) => void;
+    setTemplates: (templates: Template[] | null) => void;
     setGuilds: (guilds: Guild[]) => void;
     setFetched: (fetched: boolean) => void;
 };

@@ -71,7 +71,7 @@ export default function EditorPanel({
             if (error) {
                 router.push("/new");
             } else {
-                return setComponents(data.components);
+                return setComponents(data.components as unknown as APIMessageTopLevelComponent[]);
             }
         };
 

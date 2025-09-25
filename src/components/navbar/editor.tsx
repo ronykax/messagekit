@@ -65,6 +65,7 @@ import {
 import { Separator } from "../ui/separator";
 import { Skeleton } from "../ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { Json } from "@/utils/database.types";
 
 const supabase = createClient();
 
@@ -124,8 +125,7 @@ export default function EditorNavbar({
             .eq("uid", user.id)
             .limit(25)
             .then(({ data, error }) => {
-                if (error) toast.error("Failed to fetch messages");
-                else setTemplates(data);
+                setTemplates(data);
             });
 
         fetch("/api/discord/guilds")
@@ -191,7 +191,7 @@ export default function EditorNavbar({
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             uid: user.id,
-            components: components,
+            components: components as unknown as Json,
             name: newTemplateName,
         });
 
@@ -207,7 +207,7 @@ export default function EditorNavbar({
 
         const { error } = await supabase.from("templates").upsert({
             template_id: templateId,
-            components: components,
+            components: components as unknown as Json,
             updated_at: new Date().toISOString(),
             uid: user.id,
         });
