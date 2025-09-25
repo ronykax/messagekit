@@ -1,7 +1,7 @@
 import type { APIMediaGalleryComponent } from "discord-api-types/v10";
 import { memo, useEffect, useState } from "react";
 import { useFiles } from "@/lib/stores/files";
-import { useHoveredComponentStore } from "@/lib/stores/hoveredComponent";
+import { useHoveredComponentStore } from "@/lib/stores/hovered-component";
 import { cn } from "@/lib/utils";
 import { inspectedStyle } from "@/utils/constants";
 import { sanitizeFileName } from "@/utils/functions";

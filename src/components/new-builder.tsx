@@ -1,7 +1,7 @@
 import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, TrashIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { type PropsWithChildren, type ReactNode, useEffect, useState } from "react";
-import { useHoveredComponentStore } from "@/lib/stores/hoveredComponent";
+import { useHoveredComponentStore } from "@/lib/stores/hovered-component";
 import { useInspectingStore } from "@/lib/stores/inspecting";
 import { cn } from "@/lib/utils";
 import { motionProps } from "@/utils/constants";

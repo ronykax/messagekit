@@ -23,6 +23,8 @@ import { motionProps } from "@/utils/constants";
 import { moveItem, randomNumber, removeAt, toComponentEmoji } from "@/utils/functions";
 import EmojiPicker from "../emoji-picker";
 import NewBuilder from "../new-builder";
+import RequiredIndicator from "../required-indicator";
+import ActionSelector from "../selectors/actions";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -62,6 +64,8 @@ export default function ButtonGroup({
     const [buttonActionId, setButtonActionId] = useState("");
 
     const isValid = useMemo(() => {
+        if (!buttonLabel.trim()) return false;
+
         if (buttonStyle === "link") {
             try {
                 new URL(buttonUrl);
@@ -72,7 +76,7 @@ export default function ButtonGroup({
         } else {
             return buttonActionId.trim().length > 0;
         }
-    }, [buttonStyle, buttonUrl, buttonActionId]);
+    }, [buttonLabel, buttonStyle, buttonUrl, buttonActionId]);
 
     return (
         <NewBuilder
@@ -173,14 +177,12 @@ export default function ButtonGroup({
                             ) : (
                                 <div className="flex flex-col gap-2">
                                     <Label htmlFor="btn-action-id">
-                                        Action ID
-                                        <span className="text-destructive">*</span>
+                                        Action
+                                        <RequiredIndicator />
                                     </Label>
-                                    <Input
-                                        placeholder="Enter your action ID"
-                                        value={buttonActionId}
-                                        id="btn-action-id"
-                                        onChange={(e) => setButtonActionId(e.target.value)}
+                                    <ActionSelector
+                                        action={buttonActionId}
+                                        setAction={(action) => setButtonActionId(action.custom_id)}
                                     />
                                 </div>
                             )}

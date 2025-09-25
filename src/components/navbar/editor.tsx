@@ -30,6 +30,7 @@ import { useInspectingStore } from "@/lib/stores/inspecting";
 import { useUserStore } from "@/lib/stores/user";
 import { createClient } from "@/lib/supabase/client";
 import { componentDescriptors, defaultComponents } from "@/utils/constants";
+import type { Json } from "@/utils/database.types";
 import { append } from "@/utils/functions";
 import ActionsButton from "../actions-button";
 import { Button } from "../ui/button";
@@ -65,7 +66,6 @@ import {
 import { Separator } from "../ui/separator";
 import { Skeleton } from "../ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { Json } from "@/utils/database.types";
 
 const supabase = createClient();
 
@@ -125,6 +125,7 @@ export default function EditorNavbar({
             .eq("uid", user.id)
             .limit(25)
             .then(({ data, error }) => {
+                if (error) toast.error("Failed to load messages");
                 setTemplates(data);
             });
 
@@ -202,7 +203,7 @@ export default function EditorNavbar({
         }
     }
 
-    async function handleUpdateMessage() {
+    async function handleUpdateMessage(redirectToLogin = false) {
         if (!user) return;
 
         const { error } = await supabase.from("templates").upsert({
@@ -215,7 +216,11 @@ export default function EditorNavbar({
         if (error) {
             toast.error("Something went wrong");
         } else {
-            toast.success("Saved");
+            if (redirectToLogin) {
+                window.location.href = `/auth/login?prompt=none&redirect=/${templateId}`;
+            } else {
+                toast.success("Saved");
+            }
         }
     }
 
@@ -258,13 +263,17 @@ export default function EditorNavbar({
                                                 variant={"ghost"}
                                                 size="icon"
                                                 className="size-4"
-                                                asChild
+                                                onClick={() => {
+                                                    if (templateId === "new") {
+                                                        setShowNewTemplateDialog(
+                                                            !showNewTemplateDialog,
+                                                        );
+                                                    } else {
+                                                        handleUpdateMessage(true);
+                                                    }
+                                                }}
                                             >
-                                                <a
-                                                    href={`/auth/login?prompt=none&redirect=/${templateId}`}
-                                                >
-                                                    <RefreshCwIcon />
-                                                </a>
+                                                <RefreshCwIcon />
                                             </Button>
                                         </SelectLabel>
                                         {guilds?.map((guild) => (

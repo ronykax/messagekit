@@ -3,7 +3,7 @@
 import {
     type APIInteraction,
     type APIInteractionResponse,
-    APIMessageTopLevelComponent,
+    type APIMessageTopLevelComponent,
     Client,
     InteractionResponseType,
     InteractionType,

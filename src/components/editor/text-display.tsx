@@ -17,7 +17,7 @@ import {
     TextIcon,
     TrashIcon,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toComponentEmoji } from "@/utils/functions";
 import EmojiPicker from "../emoji-picker";
 import HelperText from "../helper-text";
@@ -61,7 +61,9 @@ export default function TextDisplay({
     removeAccessory?: () => void;
     component: APITextDisplayComponent | APISectionComponent;
 }) {
-    const [tab, setTab] = useState<"thumbnail" | "button">("thumbnail");
+    const [tab, setTab] = useState<"thumbnail" | "button">(
+        accessory?.type === ComponentType.Button ? "button" : "thumbnail",
+    );
 
     // image accesory
     const [imageUrl, setImageUrl] = useState("");
@@ -103,6 +105,17 @@ export default function TextDisplay({
 
         return false;
     }, [imageUrl, buttonLabel, buttonStyle, buttonUrl, buttonActionId, tab]);
+
+    useEffect(() => {
+        console.log(
+            "accessory data:",
+            JSON.stringify({ buttonLabel, buttonStyle, buttonActionId, tab }, null, 2),
+        );
+    }, [buttonLabel, buttonStyle, buttonActionId, tab]);
+
+    useEffect(() => {
+        console.log(isValid);
+    }, [isValid]);
 
     function isThumbnailComponent(
         a: APISectionAccessoryComponent | undefined,
@@ -309,6 +322,7 @@ export default function TextDisplay({
                                             setAction={(action) =>
                                                 setButtonActionId(action.custom_id as string)
                                             }
+                                            action={buttonActionId}
                                         />
                                         <HelperText text="Select an action that this button should trigger" />
                                     </div>

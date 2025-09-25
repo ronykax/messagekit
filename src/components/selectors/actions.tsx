@@ -3,6 +3,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import type { Json } from "@/utils/database.types";
 import { Button } from "../ui/button";
 import {
     Command,
@@ -17,29 +18,53 @@ import { Spinner } from "../ui/spinner";
 
 const supabase = createClient();
 
+type DBAction = {
+    created_at: string;
+    custom_id: string;
+    name: string | null;
+    params: Json;
+    template: string;
+    uid: string;
+    updated_at: string;
+};
+
 export default function ActionSelector({
     actions,
     setAction,
+    action,
 }: {
-    actions?: Record<string, unknown>[] | null;
-    setAction: (action: Record<string, unknown>) => void;
+    actions?: DBAction[] | null;
+    setAction: (action: DBAction) => void;
+    action: string;
 }) {
     const pathname = usePathname();
 
-    const [ownActions, setOwnActions] = useState<Record<string, unknown>[] | null>(null);
+    const [ownActions, setOwnActions] = useState<DBAction[] | null>(null);
     const [open, setOpen] = useState(false);
-    const [selectedValue, setSelectedValue] = useState("");
+    const [selectedValue, setSelectedValue] = useState(action);
+    const [loading, setLoading] = useState(false);
+    const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
-    const [loading, setLoading] = useState(true);
-
-    // Fetch actions
+    // Sync selectedValue with action prop when it changes
     useEffect(() => {
+        setSelectedValue(action);
+    }, [action]);
+
+    // Fetch actions immediately when component mounts (if actions prop is not provided)
+    useEffect(() => {
+        // If actions are provided as prop, no need to fetch
         if (actions !== undefined) {
-            return setLoading(false);
+            setLoading(false);
+            return;
         }
 
-        if (!open) return;
-        if (ownActions !== null) return; // already fetched
+        // If we've already attempted to fetch or already have actions, don't fetch again
+        if (hasAttemptedFetch || ownActions !== null) {
+            return;
+        }
+
+        setLoading(true);
+        setHasAttemptedFetch(true);
 
         supabase
             .from("actions")
@@ -49,12 +74,13 @@ export default function ActionSelector({
             .then(({ data, error }) => {
                 if (error) {
                     toast.error("Failed to fetch actions");
+                    setLoading(false);
                 } else {
                     setOwnActions(data);
                     setLoading(false);
                 }
             });
-    }, [actions, pathname, open, ownActions]);
+    }, [actions, pathname, ownActions, hasAttemptedFetch]);
 
     const currentActions = actions ?? ownActions ?? [];
 
@@ -67,10 +93,16 @@ export default function ActionSelector({
                     aria-expanded={open}
                     className="w-full justify-between"
                 >
-                    {selectedValue
-                        ? (currentActions.find((action) => action.custom_id === selectedValue)
-                              ?.name as string)
-                        : "Select action..."}
+                    {(() => {
+                        if (loading)
+                            return <span className="text-muted-foreground">Loading...</span>;
+                        if (!selectedValue) return "Select action...";
+
+                        const selectedAction = currentActions.find(
+                            (action) => action.custom_id === selectedValue,
+                        );
+                        return selectedAction?.name || "Select action...";
+                    })()}
                     <ChevronsUpDownIcon className="opacity-50" />
                 </Button>
             </PopoverTrigger>
@@ -79,9 +111,13 @@ export default function ActionSelector({
                     <CommandInput placeholder="Search action..." />
                     <CommandList>
                         <CommandEmpty>
-                            {currentActions.length !== 0
-                                ? "No action found"
-                                : loading && <Spinner size="medium" />}
+                            {loading ? (
+                                <Spinner size="medium" />
+                            ) : currentActions.length === 0 ? (
+                                "No actions found"
+                            ) : (
+                                "No action found"
+                            )}
                         </CommandEmpty>
                         <CommandGroup>
                             {currentActions.map((item) => (

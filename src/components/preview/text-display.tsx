@@ -84,7 +84,7 @@ function renderNodesWithMentions(node: ReactNode): ReactNode {
 }
 
 import type { Literal, Node, Parent } from "unist";
-import { useHoveredComponentStore } from "@/lib/stores/hoveredComponent";
+import { useHoveredComponentStore } from "@/lib/stores/hovered-component";
 import { inspectedStyle } from "@/utils/constants";
 import { randomNumber } from "@/utils/functions";
 

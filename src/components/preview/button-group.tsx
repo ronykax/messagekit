@@ -4,7 +4,7 @@ import {
     ButtonStyle,
     ComponentType,
 } from "discord-api-types/v10";
-import { useHoveredComponentStore } from "@/lib/stores/hoveredComponent";
+import { useHoveredComponentStore } from "@/lib/stores/hovered-component";
 import { cn } from "@/lib/utils";
 import { inspectedStyle } from "@/utils/constants";
 import PreviewButton from "./button";
