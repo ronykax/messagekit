@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { Database } from "@/utils/database.types";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
@@ -28,7 +29,7 @@ export const createClient = async (useServiceRole = false) => {
     }
 
     // NOTE: service role key is powerful — never expose it to the browser.
-    return createServerClient(supabaseUrl, key, {
+    return createServerClient<Database>(supabaseUrl, key, {
         cookies: {
             getAll() {
                 return cookieStore.getAll();

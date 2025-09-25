@@ -352,9 +352,8 @@ export default function EditorNavbar({
                         </>
                     ) : (
                         user === undefined &&
-                        templates === null && guilds === null && (
-                            <Skeleton className="w-[432px] h-full" />
-                        )
+                        templates === null &&
+                        guilds === null && <Skeleton className="w-[432px] h-full" />
                     )}
                 </div>
 
