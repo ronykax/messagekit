@@ -233,132 +233,129 @@ export default function EditorNavbar({
                         />
                     </a>
 
-                    {/* GUILD SELECTOR */}
                     {user ? (
-                        <Select
-                            value={selectedGuildValue}
-                            onValueChange={(value) => setGuild(value ?? null)}
-                        >
-                            <SelectTrigger className="w-[200px]">
-                                <SelectValue
-                                    placeholder={
-                                        <div className="flex gap-2 items-center">
-                                            <HouseIcon />
-                                            <span>Select a guild</span>
-                                        </div>
-                                    }
-                                />
-                            </SelectTrigger>
-                            <SelectContent className="max-w-[200px]">
-                                <SelectGroup>
-                                    <SelectLabel className="flex justify-between">
-                                        <span>Guilds</span>
-                                        <Button
-                                            variant={"ghost"}
-                                            size="icon"
-                                            className="size-4"
-                                            asChild
-                                        >
-                                            <a
-                                                href={`/auth/login?prompt=none&redirect=/${templateId}`}
+                        <>
+                            {/* GUILD SELECTOR */}
+                            <Select
+                                value={selectedGuildValue}
+                                onValueChange={(value) => setGuild(value ?? null)}
+                            >
+                                <SelectTrigger className="w-[200px]">
+                                    <SelectValue
+                                        placeholder={
+                                            <div className="flex gap-2 items-center">
+                                                <HouseIcon />
+                                                <span>Select a guild</span>
+                                            </div>
+                                        }
+                                    />
+                                </SelectTrigger>
+                                <SelectContent className="max-w-[200px]">
+                                    <SelectGroup>
+                                        <SelectLabel className="flex justify-between">
+                                            <span>Guilds</span>
+                                            <Button
+                                                variant={"ghost"}
+                                                size="icon"
+                                                className="size-4"
+                                                asChild
                                             >
-                                                <RefreshCwIcon />
-                                            </a>
-                                        </Button>
-                                    </SelectLabel>
-                                    {guilds?.map((guild) => (
-                                        <SelectItem value={guild.id} key={`${guild.id}`}>
-                                            <span className="overflow-ellipsis">
-                                                {guild.name as string}
-                                            </span>
-                                        </SelectItem>
-                                    ))}
-                                    {guilds === null && (
-                                        <SelectItem
-                                            className="text-xs justify-center p-6"
-                                            value="balls"
-                                            disabled
-                                        >
-                                            Failed to fetch guilds
-                                        </SelectItem>
-                                    )}
-                                    {guilds?.length === 0 && (
-                                        <SelectItem
-                                            className="text-xs justify-center p-6"
-                                            value="balls"
-                                            disabled
-                                        >
-                                            No guilds found
-                                        </SelectItem>
-                                    )}
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-                    ) : user === undefined ? (
-                        guilds === null && <Skeleton className="w-[200px] h-full" />
-                    ) : null}
+                                                <a
+                                                    href={`/auth/login?prompt=none&redirect=/${templateId}`}
+                                                >
+                                                    <RefreshCwIcon />
+                                                </a>
+                                            </Button>
+                                        </SelectLabel>
+                                        {guilds?.map((guild) => (
+                                            <SelectItem value={guild.id} key={`${guild.id}`}>
+                                                <span className="overflow-ellipsis">
+                                                    {guild.name as string}
+                                                </span>
+                                            </SelectItem>
+                                        ))}
+                                        {guilds === null && (
+                                            <SelectItem
+                                                className="text-xs justify-center p-6"
+                                                value="balls"
+                                                disabled
+                                            >
+                                                Failed to fetch guilds
+                                            </SelectItem>
+                                        )}
+                                        {guilds?.length === 0 && (
+                                            <SelectItem
+                                                className="text-xs justify-center p-6"
+                                                value="balls"
+                                                disabled
+                                            >
+                                                No guilds found
+                                            </SelectItem>
+                                        )}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
 
-                    {user && <ChevronRightIcon className="size-4 opacity-75" />}
+                            <ChevronRightIcon className="size-4 opacity-75" />
 
-                    {/* TEMPLATE SELECTOR */}
-                    {user ? (
-                        <Select
-                            value={
-                                templateId === "new" ||
-                                !templates?.some((t) => t.template_id === templateId)
-                                    ? undefined
-                                    : templateId
-                            }
-                            onValueChange={(value) => router.push(`/${value}`)}
-                        >
-                            <SelectTrigger className="w-[200px]">
-                                <SelectValue
-                                    placeholder={
-                                        <div className="flex gap-2 items-center">
-                                            <MessageSquareIcon />
-                                            <span>Select a message</span>
-                                        </div>
-                                    }
-                                />
-                            </SelectTrigger>
-                            <SelectContent className="max-w-[200px]">
-                                <SelectGroup>
-                                    <SelectLabel className="flex justify-between">
-                                        <span>Messages</span>
-                                        <Button
-                                            variant={"ghost"}
-                                            size="icon"
-                                            className="size-4"
-                                            asChild
-                                        >
-                                            <a href={"/new"}>
-                                                <PlusIcon />
-                                            </a>
-                                        </Button>
-                                    </SelectLabel>
-                                    {templates?.map((template, index) => (
-                                        <SelectItem
-                                            value={template.template_id as string}
-                                            key={`${template.name ?? "undefined"}-${index}`}
-                                        >
-                                            <span className="overflow-ellipsis">
-                                                {template.name as string}
-                                            </span>
-                                        </SelectItem>
-                                    ))}
-                                    {templates === null && (
-                                        <SelectItem value="balls">Select a message</SelectItem>
-                                    )}
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-                    ) : user === undefined ? (
-                        templates === null && <Skeleton className="w-[200px] h-full" />
-                    ) : null}
-
-                    {/* <Button variant="outline" size="icon">
-                        <SettingsIcon />
-                    </Button> */}
+                            {/* TEMPLATE SELECTOR */}
+                            <Select
+                                value={
+                                    templateId === "new" ||
+                                    !templates?.some((t) => t.template_id === templateId)
+                                        ? undefined
+                                        : templateId
+                                }
+                                onValueChange={(value) => router.push(`/${value}`)}
+                            >
+                                <SelectTrigger className="w-[200px]">
+                                    <SelectValue
+                                        placeholder={
+                                            <div className="flex gap-2 items-center">
+                                                <MessageSquareIcon />
+                                                <span>Select a message</span>
+                                            </div>
+                                        }
+                                    />
+                                </SelectTrigger>
+                                <SelectContent className="max-w-[200px]">
+                                    <SelectGroup>
+                                        <SelectLabel className="flex justify-between">
+                                            <span>Messages</span>
+                                            <Button
+                                                variant={"ghost"}
+                                                size="icon"
+                                                className="size-4"
+                                                asChild
+                                            >
+                                                <a href={"/new"}>
+                                                    <PlusIcon />
+                                                </a>
+                                            </Button>
+                                        </SelectLabel>
+                                        {templates?.map((template, index) => (
+                                            <SelectItem
+                                                value={template.template_id as string}
+                                                key={`${template.name ?? "undefined"}-${index}`}
+                                            >
+                                                <span className="overflow-ellipsis">
+                                                    {template.name as string}
+                                                </span>
+                                            </SelectItem>
+                                        ))}
+                                        {templates === null && (
+                                            <SelectItem value="balls">Select a message</SelectItem>
+                                        )}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        </>
+                    ) : (
+                        user === undefined &&
+                        templates === null && guilds === null && (
+                            <Skeleton className="w-[432px] h-full" />
+                        )
+                    )}
                 </div>
 
                 <div className="flex gap-2">
