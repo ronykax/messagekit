@@ -1,3 +1,4 @@
+import type { RESTAPIPartialCurrentUserGuild } from "discord-api-types/v10";
 import { z } from "zod";
 import type { Json } from "./database.types";
 
@@ -39,9 +40,20 @@ export const BotActionSchema = z.discriminatedUnion("type", [
 
 export type BotActionBody = z.infer<typeof BotActionSchema>;
 
-export type DBAction = {
-    id: number;
+export type Guild = RESTAPIPartialCurrentUserGuild;
+
+export type RowTemplate = {
+    components: Json;
     created_at: string;
+    name: string | null;
+    template_id: string;
+    uid: string;
+    updated_at: string;
+};
+
+export type RowAction = {
+    created_at: string;
+    id: number;
     name: string | null;
     params: Json;
     template: string;

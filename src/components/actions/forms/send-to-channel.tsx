@@ -1,6 +1,6 @@
 import HelperText from "@/components/helper-text";
 import RequiredIndicator from "@/components/required-indicator";
-import ChannelSelector from "@/components/selectors/channels";
+import ChannelSelector from "@/components/select/channels";
 import { Label } from "@/components/ui/label";
 import {
     Select,

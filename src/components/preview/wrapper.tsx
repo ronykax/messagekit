@@ -1,6 +1,5 @@
-import { ComponentType } from "discord-api-types/v10";
+import { type APIMessageTopLevelComponent, ComponentType } from "discord-api-types/v10";
 import { useEffect } from "react";
-import { useOutputStore } from "@/lib/stores/output";
 import PreviewButtonGroup from "./button-group";
 import PreviewContainer from "./container";
 import PreviewFile from "./file";
@@ -8,14 +7,16 @@ import PreviewMediaGallery from "./media-gallery";
 import PreviewSeparator from "./separator";
 import PreviewTextDisplay from "./text-display";
 
-export default function PreviewWrapper() {
-    const { output } = useOutputStore();
-
+export default function PreviewWrapper({
+    components,
+}: {
+    components: APIMessageTopLevelComponent[];
+}) {
     useEffect(() => {
         setTimeout(() => {
-            localStorage.setItem("output-json", JSON.stringify(output));
+            localStorage.setItem("output-json", JSON.stringify(components));
         }, 1000);
-    }, [output]);
+    }, [components]);
 
     const now = new Date();
     const timeString = now.toLocaleTimeString([], {
@@ -39,7 +40,7 @@ export default function PreviewWrapper() {
                     <span className="text-[#949ba4] text-[12px] font-medium">{timeString}</span>
                 </div>
                 <div className="flex flex-col gap-[8px] w-full max-w-[600px]">
-                    {output.map((component) => {
+                    {components.map((component) => {
                         if (component.type === ComponentType.TextDisplay) {
                             return <PreviewTextDisplay key={component.id} component={component} />;
                         } else if (component.type === ComponentType.Section) {

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { useDataStore } from "@/lib/stores/data";
 import type { BotActionBody, BotActions } from "@/utils/types";
-import { Checkbox } from "../ui/checkbox";
+import { Checkbox } from "../../ui/checkbox";
 
 interface Props {
     data: Extract<BotActionBody, { type: BotActions.ReplyToInteraction }>;

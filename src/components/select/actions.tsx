@@ -1,9 +1,8 @@
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useState } from "react";
+import { useDataStore } from "@/lib/stores/data";
 import { createClient } from "@/lib/supabase/client";
-import type { DBAction } from "@/utils/types";
+import type { RowAction } from "@/utils/types";
 import { Button } from "../ui/button";
 import {
     Command,
@@ -14,69 +13,24 @@ import {
     CommandList,
 } from "../ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Spinner } from "../ui/spinner";
 
-const supabase = createClient();
+const _supabase = createClient();
 
 export default function ActionSelector({
-    actions,
     setAction,
     action,
     disabled = false,
 }: {
-    actions?: DBAction[] | null;
-    setAction: (action: DBAction) => void;
+    setAction: (action: RowAction) => void;
     action: string;
     disabled?: boolean;
 }) {
-    const pathname = usePathname();
+    const { actions } = useDataStore();
 
-    const [ownActions, setOwnActions] = useState<DBAction[] | null>(null);
     const [open, setOpen] = useState(false);
     const [selectedValue, setSelectedValue] = useState(action);
-    const [loading, setLoading] = useState(false);
-    const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
-    // Sync selectedValue with action prop when it changes
-    useEffect(() => {
-        setSelectedValue(action);
-    }, [action]);
-
-    // Fetch actions immediately when component mounts (if actions prop is not provided)
-    useEffect(() => {
-        if (disabled) return;
-
-        // If actions are provided as prop, no need to fetch
-        if (actions !== undefined) {
-            setLoading(false);
-            return;
-        }
-
-        // If we've already attempted to fetch or already have actions, don't fetch again
-        if (hasAttemptedFetch || ownActions !== null) {
-            return;
-        }
-
-        setLoading(true);
-        setHasAttemptedFetch(true);
-
-        supabase
-            .from("actions")
-            .select("*")
-            .eq("template", pathname.slice(1))
-            .limit(25)
-            .then(({ data, error }) => {
-                if (error) {
-                    toast.error("Failed to fetch actions");
-                    setLoading(false);
-                } else {
-                    setOwnActions(data);
-                    setLoading(false);
-                }
-            });
-    }, [actions, pathname, ownActions, hasAttemptedFetch, disabled]);
-
-    const currentActions = actions ?? ownActions ?? [];
+    const currentActions = actions ?? [];
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -89,8 +43,6 @@ export default function ActionSelector({
                     disabled={disabled}
                 >
                     {(() => {
-                        if (loading)
-                            return <span className="text-muted-foreground">Loading...</span>;
                         if (!selectedValue) return "Select action...";
 
                         const selectedAction = currentActions.find(
@@ -107,13 +59,7 @@ export default function ActionSelector({
                     <CommandInput placeholder="Search action..." />
                     <CommandList>
                         <CommandEmpty>
-                            {loading ? (
-                                <Spinner size="medium" />
-                            ) : currentActions.length === 0 ? (
-                                "No actions found"
-                            ) : (
-                                "No action found"
-                            )}
+                            {currentActions.length === 0 && "No actions found"}
                         </CommandEmpty>
                         <CommandGroup>
                             {currentActions.map((item) => (

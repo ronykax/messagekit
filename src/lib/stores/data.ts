@@ -1,27 +1,24 @@
-import type { RESTAPIPartialCurrentUserGuild } from "discord-api-types/v10";
 import { create } from "zustand";
-
-type Template = {
-    template_id: string;
-    name: string | null;
-};
-
-type Guild = RESTAPIPartialCurrentUserGuild;
+import type { Guild, RowAction, RowTemplate } from "@/utils/types";
 
 type State = {
-    templates: Template[] | null;
+    templates: RowTemplate[] | null;
+    actions: RowAction[] | null;
     guilds: Guild[] | null;
     fetched: boolean;
-    setTemplates: (templates: Template[] | null) => void;
+    setTemplates: (templates: RowTemplate[] | null) => void;
+    setActions: (actions: RowAction[] | null) => void;
     setGuilds: (guilds: Guild[]) => void;
     setFetched: (fetched: boolean) => void;
 };
 
 export const useDataStore = create<State>((set) => ({
     templates: null,
+    actions: null,
     guilds: null,
     fetched: false,
     setTemplates: (templates) => set({ templates }),
+    setActions: (actions) => set({ actions }),
     setGuilds: (guilds) => set({ guilds }),
     setFetched: (fetched) => set({ fetched }),
 }));

@@ -20,8 +20,7 @@ import { useMemo, useState } from "react";
 import { toComponentEmoji } from "@/utils/functions";
 import EmojiPicker from "../emoji-picker";
 import HelperText from "../helper-text";
-import NewBuilder from "../new-builder";
-import ActionSelector from "../selectors/actions";
+import ActionSelector from "../select/actions";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -38,6 +37,7 @@ import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Textarea } from "../ui/textarea";
+import Wrapper from "./wrapper";
 
 export default function TextDisplay({
     content,
@@ -105,6 +105,18 @@ export default function TextDisplay({
         return false;
     }, [imageUrl, buttonLabel, buttonStyle, buttonUrl, buttonActionId, tab]);
 
+    function resetAllStates() {
+        setImageUrl("");
+        setImageAlt("");
+
+        setButtonLabel("");
+        setButtonEmoji(null);
+        setButtonStyle("primary");
+
+        setButtonUrl("");
+        setButtonActionId("");
+    }
+
     function isThumbnailComponent(
         a: APISectionAccessoryComponent | undefined,
     ): a is APIThumbnailComponent {
@@ -163,7 +175,7 @@ export default function TextDisplay({
     const buttonUrlValue = isButtonWithURL(accessory) ? accessory.url : buttonUrl;
 
     return (
-        <NewBuilder
+        <Wrapper
             name="Text"
             icon={<TextIcon />}
             onMoveUp={onMoveUp}
@@ -326,6 +338,7 @@ export default function TextDisplay({
                                         onClick={() =>
                                             setTimeout(() => {
                                                 removeAccessory?.();
+                                                resetAllStates();
                                             }, 50)
                                         }
                                     >
@@ -384,6 +397,6 @@ export default function TextDisplay({
             {/* <div className="rounded-md border mt-4 text-sm">
                 show gap
             </div> */}
-        </NewBuilder>
+        </Wrapper>
     );
 }

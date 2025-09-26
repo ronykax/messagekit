@@ -1,27 +1,18 @@
 import type { APIMessageTopLevelComponent } from "discord-api-types/v10";
 import {
     ChevronRightIcon,
-    DownloadIcon,
     EraserIcon,
     HouseIcon,
     MessageSquareIcon,
     PlusIcon,
+    RedoIcon,
     RefreshCwIcon,
-    SaveIcon,
-    UploadIcon,
+    UndoIcon,
 } from "lucide-react";
 import { nanoid } from "nanoid";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import {
-    type Dispatch,
-    Fragment,
-    type SetStateAction,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
+import { useParams, useRouter } from "next/navigation";
+import { type Dispatch, Fragment, type SetStateAction, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useDataStore } from "@/lib/stores/data";
 import { useGuildStore } from "@/lib/stores/guild";
@@ -30,7 +21,7 @@ import { createClient } from "@/lib/supabase/client";
 import { componentDescriptors, defaultComponents } from "@/utils/constants";
 import type { Json } from "@/utils/database.types";
 import { append } from "@/utils/functions";
-import ActionsButton from "../actions-button";
+import ActionsButton from "../actions/button";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -63,23 +54,23 @@ import {
 } from "../ui/select";
 import { Separator } from "../ui/separator";
 import { Skeleton } from "../ui/skeleton";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 const supabase = createClient();
 
 export default function EditorNavbar({
     setComponents,
     components,
-    templateId,
 }: {
     setComponents: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
     components: APIMessageTopLevelComponent[];
-    templateId: string;
 }) {
+    const { user } = useUserStore();
+
     const router = useRouter();
 
-    // stores
-    const { user } = useUserStore();
+    const { message: param } = useParams();
+    const templateId = `${param}`;
+
     const { guild, setGuild } = useGuildStore();
 
     const {
@@ -99,8 +90,6 @@ export default function EditorNavbar({
     const [showNewTemplateDialog, setShowNewTemplateDialog] = useState(false);
     const [newTemplateName, setNewTemplateName] = useState("");
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
     const addComponent = <T extends APIMessageTopLevelComponent>(component: T) =>
         setComponents((previousComponents) => append(previousComponents, component));
 
@@ -118,7 +107,7 @@ export default function EditorNavbar({
 
         supabase
             .from("templates")
-            .select("template_id, name")
+            .select("*")
             .eq("uid", user.id)
             .limit(25)
             .then(({ data, error }) => {
@@ -154,31 +143,6 @@ export default function EditorNavbar({
         if (!guild) return undefined;
         return guilds.some((g) => g.id === guild) ? guild : undefined;
     }, [guilds, guild]);
-
-    function handleExport() {
-        const download = new Blob([JSON.stringify(components, null, 4)], {
-            type: "application/json",
-        });
-
-        const url = URL.createObjectURL(download);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "msgkit-export.json";
-        a.click();
-
-        URL.revokeObjectURL(url);
-    }
-
-    async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const text = await file.text();
-        const data = JSON.parse(text);
-
-        setComponents(data);
-    }
 
     async function handleSaveTemplate() {
         if (!user) return;
@@ -250,7 +214,14 @@ export default function EditorNavbar({
                                                 <span>Select a guild</span>
                                             </div>
                                         }
-                                    />
+                                    >
+                                        <HouseIcon />
+                                        {
+                                            guilds?.find(
+                                                (guild) => guild?.id === selectedGuildValue,
+                                            )?.name
+                                        }
+                                    </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent className="max-w-[200px]">
                                     <SelectGroup>
@@ -322,7 +293,14 @@ export default function EditorNavbar({
                                                 <span>Select a message</span>
                                             </div>
                                         }
-                                    />
+                                    >
+                                        <MessageSquareIcon />
+                                        {
+                                            templates?.find(
+                                                (template) => template.template_id === templateId,
+                                            )?.name
+                                        }
+                                    </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent className="max-w-[200px]">
                                     <SelectGroup>
@@ -364,52 +342,13 @@ export default function EditorNavbar({
                 </div>
 
                 <div className="flex gap-2">
-                    {/* EXPORT/IMPORT BUTTONS */}
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={handleExport}>
-                                <UploadIcon />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Export as JSON</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => fileInputRef.current?.click()}
-                            >
-                                <DownloadIcon />
-                                <input
-                                    className="sr-only"
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleImport}
-                                />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Import from JSON</TooltipContent>
-                    </Tooltip>
-
-                    <Separator orientation="vertical" />
-
-                    {/* INSPECT BUTTON */}
-                    {/* <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant={inspecting ? "secondary" : "ghost"}
-                                size="icon"
-                                onClick={() => {
-                                    setInspecting(!inspecting);
-                                }}
-                                className="hidden lg:inline-flex"
-                            >
-                                <SquareDashedMousePointerIcon />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Inspect</TooltipContent>
-                    </Tooltip> */}
+                    {/* UNDO/REDO BUTTONS */}
+                    <Button variant="ghost" size="icon">
+                        <UndoIcon />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                        <RedoIcon />
+                    </Button>
 
                     {/* CLEAR COMPONENS BUTTON */}
                     <Dialog>
@@ -442,7 +381,7 @@ export default function EditorNavbar({
                     </Dialog>
 
                     {/* SAVE MESSAGE BUTTON */}
-                    <Button
+                    {/* <Button
                         variant="ghost"
                         size="icon"
                         disabled={!user}
@@ -455,7 +394,7 @@ export default function EditorNavbar({
                         }}
                     >
                         <SaveIcon />
-                    </Button>
+                    </Button> */}
 
                     <Separator orientation="vertical" />
 

@@ -4,8 +4,8 @@ import { type PropsWithChildren, type ReactNode, useEffect, useState } from "rea
 import { useInspectingStore } from "@/lib/stores/inspecting";
 import { cn } from "@/lib/utils";
 import { motionProps } from "@/utils/constants";
-import { Button } from "./ui/button";
-import { Separator } from "./ui/separator";
+import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
 
 interface Props extends PropsWithChildren {
     name: string;
@@ -19,7 +19,7 @@ interface Props extends PropsWithChildren {
     icon?: ReactNode;
 }
 
-export default function NewBuilder({
+export default function Wrapper({
     name,
     onMoveUp,
     onMoveDown,

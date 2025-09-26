@@ -28,9 +28,8 @@ import {
 } from "@/utils/functions";
 import type { BotActionBody } from "@/utils/types";
 import EmojiPicker from "../emoji-picker";
-import NewBuilder from "../new-builder";
 import RequiredIndicator from "../required-indicator";
-import ActionSelector from "../selectors/actions";
+import ActionSelector from "../select/actions";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -45,6 +44,7 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import Wrapper from "./wrapper";
 
 export default function ButtonGroup({
     onMoveUp,
@@ -85,7 +85,7 @@ export default function ButtonGroup({
     }, [buttonLabel, buttonStyle, buttonUrl, buttonActionId]);
 
     return (
-        <NewBuilder
+        <Wrapper
             name="Buttons"
             icon={<MousePointerClickIcon />}
             onMoveUp={onMoveUp}
@@ -340,6 +340,6 @@ export default function ButtonGroup({
                         })}
                 </AnimatePresence>
             </div>
-        </NewBuilder>
+        </Wrapper>
     );
 }

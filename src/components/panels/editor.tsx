@@ -18,14 +18,16 @@ import { useUserStore } from "@/lib/stores/user";
 import { createClient } from "@/lib/supabase/client";
 import { defaultComponents } from "@/utils/constants";
 import { moveItem, randomNumber, removeAt, updateAt } from "@/utils/functions";
-import ComponentsValidator from "../components-validator";
 import ButtonGroup from "../editor/button-group";
 import Container from "../editor/container";
 import File from "../editor/file";
 import MediaGallery from "../editor/media-gallery";
 import YesSeparator from "../editor/separator";
 import TextDisplay from "../editor/text-display";
+import ComponentsValidator from "../editor/validator";
 import EditorNavbar from "../navbar/editor";
+
+const supabase = createClient();
 
 export default function EditorPanel({
     components,
@@ -34,57 +36,56 @@ export default function EditorPanel({
     components: APIMessageTopLevelComponent[];
     setComponents: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
 }) {
-    const router = useRouter();
-    const { message: templateId } = useParams();
-
     const { user } = useUserStore();
+
+    const { message: param } = useParams();
+    const templateId = `${param}`;
+
+    const router = useRouter();
 
     useEffect(() => {
         if (!user?.id) return;
 
-        const run = async () => {
-            if (templateId === "new") {
-                const saved = localStorage.getItem("output-json");
+        if (templateId === "new") {
+            const saved = localStorage.getItem("output-json");
 
-                if (saved) {
-                    const parsed = JSON.parse(saved);
+            if (saved) {
+                const parsed = JSON.parse(saved);
 
-                    if (Array.isArray(parsed)) {
-                        setComponents(parsed);
-                    }
-                } else {
-                    setComponents(defaultComponents);
+                if (Array.isArray(parsed)) {
+                    setComponents(parsed);
                 }
-
-                return;
-            }
-
-            const supabase = createClient();
-
-            const { data, error } = await supabase
-                .from("templates")
-                .select("*")
-                .filter("template_id", `eq`, templateId)
-                .eq("uid", user.id)
-                .single();
-
-            if (error) {
-                router.push("/new");
             } else {
-                return setComponents(data.components as unknown as APIMessageTopLevelComponent[]);
+                setComponents(defaultComponents);
             }
-        };
 
-        run();
+            return;
+        }
+
+        supabase
+            .from("templates")
+            .select("*")
+            .filter("template_id", `eq`, templateId)
+            .eq("uid", user.id)
+            .single()
+            .then(({ data, error }) => {
+                if (error) {
+                    router.push("/new");
+                } else {
+                    if (data.name) {
+                        document.title = `${data.name} - Message Kit`;
+                    }
+
+                    return setComponents(
+                        data.components as unknown as APIMessageTopLevelComponent[],
+                    );
+                }
+            });
     }, [templateId, router, user?.id, setComponents]);
 
     return (
         <div className="max-h-[100svh] flex flex-col h-full">
-            <EditorNavbar
-                setComponents={setComponents}
-                components={components}
-                templateId={`${templateId}`}
-            />
+            <EditorNavbar setComponents={setComponents} components={components} />
             <div className="p-4 flex flex-col gap-4 flex-1 overflow-y-auto">
                 <AnimatePresence>
                     <ComponentsValidator key="alert" />
@@ -117,7 +118,6 @@ function Components({
             return (
                 <TextDisplay
                     key={component.id}
-                    component={component}
                     content={component.content}
                     onContentChange={(content) =>
                         setComponents((previousComponents) =>
@@ -151,7 +151,6 @@ function Components({
             return (
                 <TextDisplay
                     key={component.id}
-                    component={component}
                     content={component.components[0].content}
                     onContentChange={(content) =>
                         setComponents((previousComponents) =>
@@ -189,7 +188,6 @@ function Components({
             return (
                 <YesSeparator
                     key={component.id}
-                    component={component}
                     spacing={component.spacing ?? SeparatorSpacingSize.Small}
                     divider={component.divider ?? true}
                     onChangeSpacing={(size) => {
@@ -217,7 +215,6 @@ function Components({
             return (
                 <MediaGallery
                     key={component.id}
-                    component={component}
                     onMoveUp={() => handleMove(index, "up")}
                     onMoveDown={() => handleMove(index, "down")}
                     onRemove={() => handleRemove(index)}
@@ -235,7 +232,6 @@ function Components({
         } else if (component.type === ComponentType.Container) {
             return (
                 <Container
-                    component={component}
                     key={component.id}
                     onMoveUp={() => handleMove(index, "up")}
                     onMoveDown={() => handleMove(index, "down")}
@@ -264,7 +260,6 @@ function Components({
             return (
                 <ButtonGroup
                     key={component.id}
-                    component={component}
                     components={component.components as APIButtonComponent[]}
                     setComponents={(components) => {
                         setComponents((previousComponents) =>
@@ -283,7 +278,6 @@ function Components({
             return (
                 <File
                     key={component.id}
-                    component={component}
                     onMoveUp={() => handleMove(index, "up")}
                     onMoveDown={() => handleMove(index, "down")}
                     onRemove={() => handleRemove(index)}

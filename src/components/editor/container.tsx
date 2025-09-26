@@ -15,7 +15,6 @@ import { Fragment, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import { componentDescriptors } from "@/utils/constants";
 import { append, hexToNumber, moveItem, removeAt, updateAt } from "@/utils/functions";
-import NewBuilder from "../new-builder";
 import { Button } from "../ui/button";
 import {
     DropdownMenu,
@@ -32,6 +31,7 @@ import File from "./file";
 import MediaGallery from "./media-gallery";
 import Separator from "./separator";
 import TextDisplay from "./text-display";
+import Wrapper from "./wrapper";
 
 export default function Container({
     onMoveUp,
@@ -75,7 +75,7 @@ export default function Container({
         }));
 
     return (
-        <NewBuilder
+        <Wrapper
             style={
                 color
                     ? {
@@ -351,6 +351,6 @@ export default function Container({
                     })}
                 </AnimatePresence>
             </div>
-        </NewBuilder>
+        </Wrapper>
     );
 }

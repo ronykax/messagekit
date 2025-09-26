@@ -8,7 +8,7 @@ import { TriangleAlertIcon } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useMemo } from "react";
 import { useOutputStore } from "@/lib/stores/output";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 function getComponentName(type: ComponentType) {
     switch (type) {

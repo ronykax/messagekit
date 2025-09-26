@@ -24,12 +24,6 @@ const PreviewMediaTile = memo(function PreviewMediaTile({
     const [show, setShow] = useState(spoiler);
 
     useEffect(() => {
-        if (show) {
-            setTimeout(() => setShow(spoiler), 5000);
-        }
-    }, [show, spoiler]);
-
-    useEffect(() => {
         if (mediaUrl.startsWith("attachment://")) {
             const filename = mediaUrl.split("/").pop();
             const file = filename

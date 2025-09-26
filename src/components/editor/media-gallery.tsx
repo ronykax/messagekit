@@ -16,7 +16,6 @@ import { useFiles } from "@/lib/stores/files";
 import { cn } from "@/lib/utils";
 import { motionProps } from "@/utils/constants";
 import { sanitizeFileName, updateAt } from "@/utils/functions";
-import NewBuilder from "../new-builder";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -31,6 +30,7 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import Wrapper from "./wrapper";
 
 export default function MediaGallery({
     onMoveUp,
@@ -123,7 +123,7 @@ export default function MediaGallery({
     };
 
     return (
-        <NewBuilder
+        <Wrapper
             name="Media"
             icon={<ImageIcon />}
             onMoveUp={onMoveUp}
@@ -366,6 +366,6 @@ export default function MediaGallery({
                     Upload images to the media gallery
                 </div>
             )}
-        </NewBuilder>
+        </Wrapper>
     );
 }
