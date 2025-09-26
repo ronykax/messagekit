@@ -55,6 +55,7 @@ export default function ActionsButton({ templateId }: { templateId: string }) {
     const { user } = useUserStore();
     const [sheetOpen, setSheetOpen] = useState(false);
 
+    const [searchValue, setSearchValue] = useState("");
     const [actions, setActions] = useState<DBAction[]>([]);
 
     // form sates
@@ -82,6 +83,14 @@ export default function ActionsButton({ templateId }: { templateId: string }) {
                 }
             });
     }, [templateId, sheetOpen]);
+
+    const filteredActions = useMemo(() => {
+        if (searchValue.trim().length > 0) {
+            const searchTerm = searchValue.toLowerCase().trim();
+            return actions.filter((action) => action.name?.toLowerCase().includes(searchTerm));
+        }
+        return actions;
+    }, [searchValue, actions]);
 
     async function createNewAction() {
         if (!user) return;
@@ -118,8 +127,6 @@ export default function ActionsButton({ templateId }: { templateId: string }) {
     }
 
     async function deleteAction(id: number) {
-        console.log("trying to delete", id);
-
         supabase
             .from("actions")
             .delete()
@@ -160,7 +167,13 @@ export default function ActionsButton({ templateId }: { templateId: string }) {
                     <div className="px-4 flex flex-col gap-4">
                         <div className="flex gap-2">
                             <div className="relative w-full">
-                                <Input className="pe-9" placeholder="Search" type="text" />
+                                <Input
+                                    className="pe-9"
+                                    placeholder="Search"
+                                    type="text"
+                                    value={searchValue}
+                                    onChange={(e) => setSearchValue(e.currentTarget.value)}
+                                />
                                 <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 peer-disabled:opacity-50">
                                     <SearchIcon size={16} aria-hidden="true" />
                                 </div>
@@ -225,7 +238,7 @@ export default function ActionsButton({ templateId }: { templateId: string }) {
                                     This message does not have any actions!
                                 </div>
                             ) : (
-                                actions.map((action, index) => (
+                                filteredActions.map((action, index) => (
                                     <div
                                         className={cn(
                                             "flex p-4 text-sm justify-between hover:bg-accent/30 duration-100",

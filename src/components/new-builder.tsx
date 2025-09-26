@@ -1,7 +1,6 @@
 import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, TrashIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { type PropsWithChildren, type ReactNode, useEffect, useState } from "react";
-import { useHoveredComponentStore } from "@/lib/stores/hovered-component";
 import { useInspectingStore } from "@/lib/stores/inspecting";
 import { cn } from "@/lib/utils";
 import { motionProps } from "@/utils/constants";
@@ -17,7 +16,6 @@ interface Props extends PropsWithChildren {
     helperText?: string;
     className?: string;
     style?: React.CSSProperties;
-    tag: number | null;
     icon?: ReactNode;
 }
 
@@ -31,11 +29,9 @@ export default function NewBuilder({
     children,
     className,
     style,
-    tag,
     icon,
 }: Props) {
     const [collapsed, setCollapsed] = useState(false);
-    const { setHoveredComponent } = useHoveredComponentStore();
     const { inspecting } = useInspectingStore();
 
     useEffect(() => {
@@ -46,7 +42,6 @@ export default function NewBuilder({
 
     return (
         <motion.div {...motionProps}>
-            {/** biome-ignore lint/a11y/noStaticElementInteractions: no */}
             <div
                 className={cn(
                     "flex flex-col border rounded-xl bg-card",
@@ -54,14 +49,6 @@ export default function NewBuilder({
                     name !== "Container" && inspecting && "hover:ring-1 hover:ring-destructive",
                 )}
                 style={style}
-                onMouseEnter={() => {
-                    if (!inspecting) return;
-                    setHoveredComponent(tag ?? null);
-                }}
-                onMouseLeave={() => {
-                    if (!inspecting) return;
-                    setHoveredComponent(null);
-                }}
             >
                 <div className="flex justify-between items-center gap-2 p-2">
                     <div className="flex items-center gap-2">

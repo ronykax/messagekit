@@ -1,4 +1,4 @@
-import type { APIMediaGalleryComponent, APIMediaGalleryItem } from "discord-api-types/v10";
+import type { APIMediaGalleryItem } from "discord-api-types/v10";
 import {
     EyeClosedIcon,
     EyeIcon,
@@ -38,14 +38,12 @@ export default function MediaGallery({
     onRemove,
     images,
     setImages,
-    component,
 }: {
     onMoveUp: () => void;
     onMoveDown: () => void;
     onRemove: () => void;
     images: APIMediaGalleryItem[];
     setImages: (images: APIMediaGalleryItem[]) => void;
-    component: APIMediaGalleryComponent;
 }) {
     const isAtLimit = images.length >= 10;
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -127,7 +125,6 @@ export default function MediaGallery({
     return (
         <NewBuilder
             name="Media"
-            tag={component.id ?? null}
             icon={<ImageIcon />}
             onMoveUp={onMoveUp}
             onMoveDown={onMoveDown}

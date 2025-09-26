@@ -1,9 +1,7 @@
 import type { APIMediaGalleryComponent } from "discord-api-types/v10";
 import { memo, useEffect, useState } from "react";
 import { useFiles } from "@/lib/stores/files";
-import { useHoveredComponentStore } from "@/lib/stores/hovered-component";
 import { cn } from "@/lib/utils";
-import { inspectedStyle } from "@/utils/constants";
 import { sanitizeFileName } from "@/utils/functions";
 
 type PreviewMediaTileProps = {
@@ -91,8 +89,6 @@ export default function PreviewMediaGallery({
     component: APIMediaGalleryComponent;
     container?: boolean;
 }) {
-    const { hoveredComponent } = useHoveredComponentStore();
-
     const items = component.items;
     const count = items.length;
 
@@ -101,10 +97,7 @@ export default function PreviewMediaGallery({
     if (count === 1) {
         return (
             <div
-                className={cn(
-                    "rounded-[8px] overflow-hidden",
-                    hoveredComponent === component.id && inspectedStyle,
-                )}
+                className="rounded-[8px] overflow-hidden"
                 style={{ maxWidth: container ? "100%" : "550px" }}
             >
                 <PreviewMediaTile
@@ -120,10 +113,7 @@ export default function PreviewMediaGallery({
     if (count === 2) {
         return (
             <div
-                className={cn(
-                    "rounded-[8px] overflow-hidden grid grid-cols-2 gap-[4px]",
-                    hoveredComponent === component.id && inspectedStyle,
-                )}
+                className="rounded-[8px] overflow-hidden grid grid-cols-2 gap-[4px]"
                 style={{ maxWidth: container ? "100%" : "550px" }}
             >
                 {items.map((item, i) => (
@@ -142,10 +132,7 @@ export default function PreviewMediaGallery({
     if (count === 3) {
         return (
             <div
-                className={cn(
-                    "rounded-[8px] overflow-hidden grid grid-cols-3 grid-rows-2 gap-[4px]",
-                    hoveredComponent === component.id && inspectedStyle,
-                )}
+                className="rounded-[8px] overflow-hidden grid grid-cols-3 grid-rows-2 gap-[4px]"
                 style={{ maxWidth: container ? "100%" : "550px" }}
             >
                 <div className="col-span-2 row-span-2">
@@ -177,10 +164,7 @@ export default function PreviewMediaGallery({
     if (count === 4) {
         return (
             <div
-                className={cn(
-                    "rounded-[8px] overflow-hidden grid grid-cols-2 gap-[4px]",
-                    hoveredComponent === component.id && inspectedStyle,
-                )}
+                className="rounded-[8px] overflow-hidden grid grid-cols-2 gap-[4px]"
                 style={{ maxWidth: container ? "100%" : "550px" }}
             >
                 {items.map((item, i) => (
@@ -199,10 +183,7 @@ export default function PreviewMediaGallery({
     if (count === 5) {
         return (
             <div
-                className={cn(
-                    "rounded-[8px] overflow-hidden flex flex-col gap-[4px]",
-                    hoveredComponent === component.id && inspectedStyle,
-                )}
+                className="rounded-[8px] overflow-hidden flex flex-col gap-[4px]"
                 style={{ maxWidth: container ? "100%" : "550px" }}
             >
                 <div className="grid grid-cols-2 gap-[4px]">
@@ -251,10 +232,7 @@ export default function PreviewMediaGallery({
     if (count === 6) {
         return (
             <div
-                className={cn(
-                    "rounded-[8px] overflow-hidden grid grid-cols-3 gap-[4px]",
-                    hoveredComponent === component.id && inspectedStyle,
-                )}
+                className="rounded-[8px] overflow-hidden grid grid-cols-3 gap-[4px]"
                 style={{ maxWidth: container ? "100%" : "550px" }}
             >
                 {items.map((item, i) => (
@@ -273,10 +251,7 @@ export default function PreviewMediaGallery({
     if (count === 7) {
         return (
             <div
-                className={cn(
-                    "rounded-[8px] overflow-hidden flex flex-col gap-[4px]",
-                    hoveredComponent === component.id && inspectedStyle,
-                )}
+                className="rounded-[8px] overflow-hidden flex flex-col gap-[4px]"
                 style={{ maxWidth: container ? "100%" : "550px" }}
             >
                 <PreviewMediaTile
@@ -304,10 +279,7 @@ export default function PreviewMediaGallery({
     if (count === 8) {
         return (
             <div
-                className={cn(
-                    "rounded-[8px] overflow-hidden flex flex-col gap-[4px]",
-                    hoveredComponent === component.id && inspectedStyle,
-                )}
+                className="rounded-[8px] overflow-hidden flex flex-col gap-[4px]"
                 style={{ maxWidth: container ? "100%" : "550px" }}
             >
                 <div className="grid grid-cols-2 gap-[4px]">
@@ -344,10 +316,7 @@ export default function PreviewMediaGallery({
     if (count === 9) {
         return (
             <div
-                className={cn(
-                    "rounded-[8px] overflow-hidden grid grid-cols-3 gap-[4px]",
-                    hoveredComponent === component.id && inspectedStyle,
-                )}
+                className="rounded-[8px] overflow-hidden grid grid-cols-3 gap-[4px]"
                 style={{ maxWidth: container ? "100%" : "550px" }}
             >
                 {items.map((item, i) => (
@@ -366,10 +335,7 @@ export default function PreviewMediaGallery({
     if (count === 10) {
         return (
             <div
-                className={cn(
-                    "rounded-[8px] overflow-hidden flex flex-col gap-[4px]",
-                    hoveredComponent === component.id && inspectedStyle,
-                )}
+                className="rounded-[8px] overflow-hidden flex flex-col gap-[4px]"
                 style={{ maxWidth: container ? "100%" : "550px" }}
             >
                 <PreviewMediaTile

@@ -8,7 +8,6 @@ import {
     PlusIcon,
     RefreshCwIcon,
     SaveIcon,
-    SquareDashedMousePointerIcon,
     UploadIcon,
 } from "lucide-react";
 import { nanoid } from "nanoid";
@@ -26,7 +25,6 @@ import {
 import { toast } from "sonner";
 import { useDataStore } from "@/lib/stores/data";
 import { useGuildStore } from "@/lib/stores/guild";
-import { useInspectingStore } from "@/lib/stores/inspecting";
 import { useUserStore } from "@/lib/stores/user";
 import { createClient } from "@/lib/supabase/client";
 import { componentDescriptors, defaultComponents } from "@/utils/constants";
@@ -82,7 +80,6 @@ export default function EditorNavbar({
 
     // stores
     const { user } = useUserStore();
-    const { inspecting, setInspecting } = useInspectingStore();
     const { guild, setGuild } = useGuildStore();
 
     const {
@@ -398,7 +395,7 @@ export default function EditorNavbar({
                     <Separator orientation="vertical" />
 
                     {/* INSPECT BUTTON */}
-                    <Tooltip>
+                    {/* <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
                                 variant={inspecting ? "secondary" : "ghost"}
@@ -412,7 +409,7 @@ export default function EditorNavbar({
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>Inspect</TooltipContent>
-                    </Tooltip>
+                    </Tooltip> */}
 
                     {/* CLEAR COMPONENS BUTTON */}
                     <Dialog>
@@ -423,7 +420,7 @@ export default function EditorNavbar({
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Are you sure?</DialogTitle>
+                                <DialogTitle>Clear components</DialogTitle>
                                 <DialogDescription>
                                     This will remove all components in this message.
                                 </DialogDescription>

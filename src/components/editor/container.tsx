@@ -3,7 +3,6 @@ import {
     type APIActionRowComponent,
     type APIButtonComponent,
     type APIComponentInContainer,
-    type APIContainerComponent,
     type APIFileComponent,
     type APIMediaGalleryComponent,
     type APISeparatorComponent,
@@ -42,7 +41,6 @@ export default function Container({
     setComponents,
     setColor,
     color,
-    component,
 }: {
     onMoveUp: () => void;
     onMoveDown: () => void;
@@ -51,7 +49,6 @@ export default function Container({
     setComponents: (components: APIComponentInContainer[]) => void;
     color: number | null;
     setColor: (color: number | null) => void;
-    component: APIContainerComponent;
 }) {
     const [colorToSet, setColorToSet] = useState("#000000");
 
@@ -89,7 +86,6 @@ export default function Container({
             }
             icon={<BoxIcon />}
             name="Container"
-            tag={component.id ?? null}
             onMoveUp={onMoveUp}
             onMoveDown={onMoveDown}
             onRemove={onRemove}
@@ -189,7 +185,6 @@ export default function Container({
                             return (
                                 <TextDisplay
                                     key={component.id}
-                                    component={component}
                                     content={component.content}
                                     onContentChange={(content) => {
                                         setComponents(
@@ -223,7 +218,6 @@ export default function Container({
                             return (
                                 <TextDisplay
                                     key={component.id}
-                                    component={component}
                                     content={component.components[0].content}
                                     onContentChange={(content) => {
                                         setComponents(
@@ -265,7 +259,6 @@ export default function Container({
                             return (
                                 <Separator
                                     key={component.id}
-                                    component={component}
                                     spacing={component.spacing ?? SeparatorSpacingSize.Small}
                                     divider={component.divider ?? true}
                                     onChangeSpacing={(size) => {
@@ -293,7 +286,6 @@ export default function Container({
                             return (
                                 <MediaGallery
                                     key={component.id}
-                                    component={component}
                                     onMoveUp={() => handleMove(index, "up")}
                                     onMoveDown={() => handleMove(index, "down")}
                                     onRemove={() => handleRemove(index)}
@@ -312,7 +304,6 @@ export default function Container({
                             return (
                                 <ButtonGroup
                                     key={component.id}
-                                    component={component}
                                     onMoveUp={() => handleMove(index, "up")}
                                     onMoveDown={() => handleMove(index, "down")}
                                     onRemove={() => handleRemove(index)}
@@ -331,7 +322,6 @@ export default function Container({
                             return (
                                 <File
                                     key={component.id}
-                                    component={component}
                                     onMoveUp={() => handleMove(index, "up")}
                                     onMoveDown={() => handleMove(index, "down")}
                                     onRemove={() => handleRemove(index)}

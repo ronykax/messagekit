@@ -4,9 +4,6 @@ import {
     ButtonStyle,
     ComponentType,
 } from "discord-api-types/v10";
-import { useHoveredComponentStore } from "@/lib/stores/hovered-component";
-import { cn } from "@/lib/utils";
-import { inspectedStyle } from "@/utils/constants";
 import PreviewButton from "./button";
 
 export default function PreviewButtonGroup({
@@ -16,10 +13,8 @@ export default function PreviewButtonGroup({
     component: APIActionRowComponent<APIComponentInMessageActionRow>;
     container?: boolean;
 }) {
-    const { hoveredComponent } = useHoveredComponentStore();
-
     return (
-        <div className={cn("flex gap-[8px]", hoveredComponent === component.id && inspectedStyle)}>
+        <div className="flex gap-[8px]">
             {component.components
                 .filter(
                     (child) =>

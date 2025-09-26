@@ -1,4 +1,4 @@
-import { type APISeparatorComponent, SeparatorSpacingSize } from "discord-api-types/v10";
+import { SeparatorSpacingSize } from "discord-api-types/v10";
 import { SeparatorHorizontalIcon } from "lucide-react";
 import NewBuilder from "../new-builder";
 import { Label } from "../ui/label";
@@ -13,7 +13,6 @@ export default function Separator({
     divider,
     onChangeSpacing,
     onChangeDivider,
-    component,
 }: {
     onMoveUp: () => void;
     onMoveDown: () => void;
@@ -22,12 +21,10 @@ export default function Separator({
     divider: boolean;
     onChangeSpacing: (size: SeparatorSpacingSize) => void;
     onChangeDivider: (value: boolean) => void;
-    component: APISeparatorComponent;
 }) {
     return (
         <NewBuilder
             name="Separator"
-            tag={component.id ?? null}
             icon={<SeparatorHorizontalIcon />}
             onMoveUp={onMoveUp}
             onMoveDown={onMoveDown}

@@ -1,7 +1,5 @@
 import {
-    type APIActionRowComponent,
     type APIButtonComponent,
-    type APIComponentInMessageActionRow,
     type APIEmoji,
     ButtonStyle,
     ComponentType,
@@ -54,14 +52,12 @@ export default function ButtonGroup({
     onRemove,
     components,
     setComponents,
-    component,
 }: {
     onMoveUp: () => void;
     onMoveDown: () => void;
     onRemove: () => void;
     components: APIButtonComponent[];
     setComponents: (components: APIButtonComponent[]) => void;
-    component: APIActionRowComponent<APIComponentInMessageActionRow>;
 }) {
     const { message: templateId } = useParams();
 
@@ -91,7 +87,6 @@ export default function ButtonGroup({
     return (
         <NewBuilder
             name="Buttons"
-            tag={component.id ?? null}
             icon={<MousePointerClickIcon />}
             onMoveUp={onMoveUp}
             onMoveDown={onMoveDown}

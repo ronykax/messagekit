@@ -15,7 +15,6 @@ export default function File({
     spoiler,
     file,
     setFile,
-    component,
 }: {
     onMoveUp: () => void;
     onMoveDown: () => void;
@@ -24,7 +23,6 @@ export default function File({
     spoiler: boolean;
     file: APIFileComponent;
     setFile: (file: APIFileComponent) => void;
-    component: APIFileComponent;
 }) {
     const { files, setFiles } = useFiles();
 
@@ -44,7 +42,6 @@ export default function File({
     return (
         <NewBuilder
             name="File"
-            tag={component.id ?? null}
             icon={<FileIcon />}
             onMoveUp={onMoveUp}
             onMoveDown={onMoveDown}
