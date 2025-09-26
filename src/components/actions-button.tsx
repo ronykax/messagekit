@@ -6,7 +6,6 @@ import {
     SearchIcon,
     TrashIcon,
 } from "lucide-react";
-import { nanoid } from "nanoid";
 import { type Dispatch, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useUserStore } from "@/lib/stores/user";
@@ -14,7 +13,7 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { actionOptions } from "@/utils/constants";
 import { getActionTypeLabel } from "@/utils/functions";
-import { type BotActionBody, BotActionSchema, BotActions } from "@/utils/types";
+import { type BotActionBody, BotActionSchema, BotActions, type DBAction } from "@/utils/types";
 import ReplyToInteractionFormBody from "./forms/reply-to-interaction";
 import SendToChannelFormBody from "./forms/send-to-channel";
 import HelperText from "./helper-text";
@@ -56,7 +55,7 @@ export default function ActionsButton({ templateId }: { templateId: string }) {
     const { user } = useUserStore();
     const [sheetOpen, setSheetOpen] = useState(false);
 
-    const [actions, setActions] = useState<Record<string, unknown>[]>([]);
+    const [actions, setActions] = useState<DBAction[]>([]);
 
     // form sates
     const [actionData, setActionData] = useState<BotActionBody | null>(null);
@@ -99,7 +98,6 @@ export default function ActionsButton({ templateId }: { templateId: string }) {
             .insert({
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
-                custom_id: nanoid(10),
                 uid: user.id,
                 params: parsed.data,
                 template: templateId,
@@ -119,18 +117,18 @@ export default function ActionsButton({ templateId }: { templateId: string }) {
             });
     }
 
-    async function deleteAction(customId: string) {
-        console.log("trying to delete", customId);
+    async function deleteAction(id: number) {
+        console.log("trying to delete", id);
 
         supabase
             .from("actions")
             .delete()
-            .eq("custom_id", customId)
+            .eq("id", id)
             .then(({ error }) => {
                 if (error) {
                     toast.error("Failed to delete action");
                 } else {
-                    setActions(actions.filter((a) => a.custom_id !== customId));
+                    setActions(actions.filter((a) => a.id !== id));
                     toast.success("Action has been deleted!");
                 }
             });
@@ -233,7 +231,7 @@ export default function ActionsButton({ templateId }: { templateId: string }) {
                                             "flex p-4 text-sm justify-between hover:bg-accent/30 duration-100",
                                             index !== actions.length - 1 && "border-b",
                                         )}
-                                        key={action.custom_id as string}
+                                        key={JSON.stringify(action.params)}
                                     >
                                         <div className="flex flex-col gap-2">
                                             <span className="font-medium">
@@ -264,9 +262,7 @@ export default function ActionsButton({ templateId }: { templateId: string }) {
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     variant="destructive"
-                                                    onClick={() =>
-                                                        deleteAction(action.custom_id as string)
-                                                    }
+                                                    onClick={() => deleteAction(action.id)}
                                                 >
                                                     <TrashIcon />
                                                     Delete

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Json } from "./database.types";
 
 export type SendOptions =
     | {
@@ -37,3 +38,13 @@ export const BotActionSchema = z.discriminatedUnion("type", [
 ]);
 
 export type BotActionBody = z.infer<typeof BotActionSchema>;
+
+export type DBAction = {
+    id: number;
+    created_at: string;
+    name: string | null;
+    params: Json;
+    template: string;
+    uid: string;
+    updated_at: string;
+};

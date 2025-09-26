@@ -3,7 +3,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import type { Json } from "@/utils/database.types";
+import type { DBAction } from "@/utils/types";
 import { Button } from "../ui/button";
 import {
     Command,
@@ -17,16 +17,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Spinner } from "../ui/spinner";
 
 const supabase = createClient();
-
-type DBAction = {
-    created_at: string;
-    custom_id: string;
-    name: string | null;
-    params: Json;
-    template: string;
-    uid: string;
-    updated_at: string;
-};
 
 export default function ActionSelector({
     actions,
@@ -104,8 +94,9 @@ export default function ActionSelector({
                         if (!selectedValue) return "Select action...";
 
                         const selectedAction = currentActions.find(
-                            (action) => action.custom_id === selectedValue,
+                            (action) => JSON.stringify(action.params) === selectedValue,
                         );
+
                         return selectedAction?.name || "Select action...";
                     })()}
                     <ChevronsUpDownIcon className="opacity-50" />
@@ -127,22 +118,21 @@ export default function ActionSelector({
                         <CommandGroup>
                             {currentActions.map((item) => (
                                 <CommandItem
-                                    key={item.custom_id as string}
-                                    value={item.name as string}
+                                    key={`${item.id}`}
                                     onSelect={() => {
-                                        setSelectedValue(item.custom_id as string);
+                                        setSelectedValue(JSON.stringify(item.params));
                                         setAction(item);
                                         setOpen(false);
                                     }}
                                 >
                                     <CheckIcon
                                         className={`${
-                                            selectedValue === item.custom_id
+                                            selectedValue === JSON.stringify(item.params)
                                                 ? "opacity-100"
                                                 : "opacity-0"
                                         }`}
                                     />
-                                    {item.name as string}
+                                    {item.name}
                                 </CommandItem>
                             ))}
                         </CommandGroup>

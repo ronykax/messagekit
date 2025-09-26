@@ -1,6 +1,6 @@
 import type { APIEmoji, APIMessageComponentEmoji } from "discord-api-types/v10";
 import { actionOptions } from "./constants";
-import { BotActions } from "./types";
+import type { BotActions } from "./types";
 
 export function removeAt<T>(array: readonly T[], index: number): T[] {
     const result = array.slice();
