@@ -18,9 +18,17 @@ import {
     TrashIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { motionProps } from "@/utils/constants";
-import { moveItem, randomNumber, removeAt, toComponentEmoji } from "@/utils/functions";
+import {
+    getActionTypeLabel,
+    moveItem,
+    randomNumber,
+    removeAt,
+    toComponentEmoji,
+} from "@/utils/functions";
+import type { BotActionBody } from "@/utils/types";
 import EmojiPicker from "../emoji-picker";
 import NewBuilder from "../new-builder";
 import RequiredIndicator from "../required-indicator";
@@ -55,6 +63,8 @@ export default function ButtonGroup({
     setComponents: (components: APIButtonComponent[]) => void;
     component: APIActionRowComponent<APIComponentInMessageActionRow>;
 }) {
+    const { message: templateId } = useParams();
+
     const [buttonLabel, setButtonLabel] = useState("");
     const [buttonEmoji, setButtonEmoji] = useState<string | APIEmoji | null>(null);
     const [buttonStyle, setButtonStyle] = useState<
@@ -181,8 +191,11 @@ export default function ButtonGroup({
                                         <RequiredIndicator />
                                     </Label>
                                     <ActionSelector
+                                        setAction={(action) =>
+                                            setButtonActionId(JSON.stringify(action.params))
+                                        }
                                         action={buttonActionId}
-                                        setAction={(action) => setButtonActionId(action.custom_id)}
+                                        disabled={templateId === "new"}
                                     />
                                 </div>
                             )}
@@ -281,7 +294,13 @@ export default function ButtonGroup({
                                                         </a>
                                                     ) : (
                                                         <span className="text-muted-foreground">
-                                                            {component.custom_id}
+                                                            {getActionTypeLabel(
+                                                                (
+                                                                    JSON.parse(
+                                                                        component.custom_id,
+                                                                    ) as BotActionBody
+                                                                ).type,
+                                                            )}
                                                         </span>
                                                     )}
                                                 </div>

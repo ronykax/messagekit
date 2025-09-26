@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import type { MotionProps } from "motion/react";
 import { randomNumber } from "./functions";
+import { BotActions } from "./types";
 
 export const motionProps: MotionProps = {
     layout: "position",
@@ -167,3 +168,9 @@ export const componentDescriptors = [
 ] as const;
 
 export const inspectedStyle = "ring-1 ring-destructive animate-pulse [animation-duration:0.75s]";
+
+export const actionOptions = [
+    { label: "Send to channel", type: BotActions.SendToChannel },
+    { label: "Reply to interaction", type: BotActions.ReplyToInteraction },
+    { label: "Do nothing", type: BotActions.DoNothing },
+];

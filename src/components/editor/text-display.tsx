@@ -17,7 +17,8 @@ import {
     TextIcon,
     TrashIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { toComponentEmoji } from "@/utils/functions";
 import EmojiPicker from "../emoji-picker";
 import HelperText from "../helper-text";
@@ -65,6 +66,8 @@ export default function TextDisplay({
         accessory?.type === ComponentType.Button ? "button" : "thumbnail",
     );
 
+    const { message: templateId } = useParams();
+
     // image accesory
     const [imageUrl, setImageUrl] = useState("");
     const [imageAlt, setImageAlt] = useState("");
@@ -105,17 +108,6 @@ export default function TextDisplay({
 
         return false;
     }, [imageUrl, buttonLabel, buttonStyle, buttonUrl, buttonActionId, tab]);
-
-    useEffect(() => {
-        console.log(
-            "accessory data:",
-            JSON.stringify({ buttonLabel, buttonStyle, buttonActionId, tab }, null, 2),
-        );
-    }, [buttonLabel, buttonStyle, buttonActionId, tab]);
-
-    useEffect(() => {
-        console.log(isValid);
-    }, [isValid]);
 
     function isThumbnailComponent(
         a: APISectionAccessoryComponent | undefined,
@@ -320,9 +312,10 @@ export default function TextDisplay({
                                         </Label>
                                         <ActionSelector
                                             setAction={(action) =>
-                                                setButtonActionId(action.custom_id as string)
+                                                setButtonActionId(JSON.stringify(action.params))
                                             }
                                             action={buttonActionId}
+                                            disabled={templateId === "new"}
                                         />
                                         <HelperText text="Select an action that this button should trigger" />
                                     </div>

@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { useUserStore } from "@/lib/stores/user";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { actionOptions } from "@/utils/constants";
+import { getActionTypeLabel } from "@/utils/functions";
 import { type BotActionBody, BotActionSchema, BotActions } from "@/utils/types";
 import ReplyToInteractionFormBody from "./forms/reply-to-interaction";
 import SendToChannelFormBody from "./forms/send-to-channel";
@@ -47,16 +49,6 @@ import {
     SheetHeader,
     SheetTitle,
 } from "./ui/sheet";
-
-const actionOptions = [
-    { label: "Send to channel", type: BotActions.SendToChannel },
-    { label: "Reply to interaction", type: BotActions.ReplyToInteraction },
-    { label: "Do nothing", type: BotActions.DoNothing },
-];
-
-const getLabel = (type: BotActions) => {
-    return actionOptions.find((opt) => opt.type === type)?.label ?? "";
-};
 
 const supabase = createClient();
 
@@ -249,7 +241,7 @@ export default function ActionsButton({ templateId }: { templateId: string }) {
                                             </span>
                                             <Badge variant={"secondary"}>
                                                 <PickaxeIcon />
-                                                {getLabel(
+                                                {getActionTypeLabel(
                                                     JSON.parse(JSON.stringify(action.params))
                                                         .type as BotActions,
                                                 )}

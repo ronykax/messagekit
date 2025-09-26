@@ -1,4 +1,5 @@
 import type { APIEmoji, APIMessageComponentEmoji } from "discord-api-types/v10";
+import { actionOptions } from "./constants";
 
 export function removeAt<T>(array: readonly T[], index: number): T[] {
     const result = array.slice();
@@ -79,3 +80,7 @@ export function parseDiscordWebhook(urlOrPath: string): { id: string; token: str
 
     return null;
 }
+
+export const getActionTypeLabel = (type: BotActions) => {
+    return actionOptions.find((opt) => opt.type === type)?.label ?? "";
+};

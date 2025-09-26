@@ -25,24 +25,7 @@ class MessageKitClient extends Client {
         }
 
         if (interaction.type === InteractionType.MessageComponent) {
-            const supabase = await createClient(true);
-
-            const { data: actionData, error: actionDataError } = await supabase
-                .from("actions")
-                .select("*")
-                .filter("custom_id", "eq", interaction.data.custom_id)
-                .single();
-
-            if (actionDataError) {
-                const response: APIInteractionResponse = {
-                    type: InteractionResponseType.ChannelMessageWithSource,
-                    data: { content: "Failed to fetch action!" },
-                };
-
-                return Response.json(response);
-            }
-
-            const parsed = BotActionSchema.safeParse(actionData.params);
+            const parsed = BotActionSchema.safeParse(JSON.parse(interaction.data.custom_id));
 
             if (!parsed.success) {
                 const response: APIInteractionResponse = {
@@ -57,6 +40,8 @@ class MessageKitClient extends Client {
 
             // REPLY TO INTERACTION
             if (params.type === BotActions.ReplyToInteraction) {
+                const supabase = await createClient(true);
+
                 const { data: templateData, error: templateDataError } = await supabase
                     .from("templates")
                     .select("*")
@@ -90,11 +75,9 @@ class MessageKitClient extends Client {
             } else if (params.type === BotActions.SendToChannel) {
             }
 
-            const content = `\`\`\`${JSON.stringify(actionData)}\`\`\``;
-
             const response: APIInteractionResponse = {
                 type: InteractionResponseType.ChannelMessageWithSource,
-                data: { content },
+                data: { content: "Something went wrong!" },
             };
 
             return Response.json(response);

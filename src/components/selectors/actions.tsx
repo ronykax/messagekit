@@ -32,10 +32,12 @@ export default function ActionSelector({
     actions,
     setAction,
     action,
+    disabled = false,
 }: {
     actions?: DBAction[] | null;
     setAction: (action: DBAction) => void;
     action: string;
+    disabled?: boolean;
 }) {
     const pathname = usePathname();
 
@@ -52,6 +54,8 @@ export default function ActionSelector({
 
     // Fetch actions immediately when component mounts (if actions prop is not provided)
     useEffect(() => {
+        if (disabled) return;
+
         // If actions are provided as prop, no need to fetch
         if (actions !== undefined) {
             setLoading(false);
@@ -80,7 +84,7 @@ export default function ActionSelector({
                     setLoading(false);
                 }
             });
-    }, [actions, pathname, ownActions, hasAttemptedFetch]);
+    }, [actions, pathname, ownActions, hasAttemptedFetch, disabled]);
 
     const currentActions = actions ?? ownActions ?? [];
 
@@ -92,6 +96,7 @@ export default function ActionSelector({
                     role="combobox"
                     aria-expanded={open}
                     className="w-full justify-between"
+                    disabled={disabled}
                 >
                     {(() => {
                         if (loading)

@@ -13,7 +13,6 @@ import {
     SendIcon,
     WebhookIcon,
 } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useFiles } from "@/lib/stores/files";
@@ -85,17 +84,17 @@ export default function PreviewPanel() {
                         <Skeleton />
                     ) : user === null ? (
                         <Button variant="ghost" asChild>
-                            <Link href="/auth/login">
+                            <a href="/auth/login">
                                 <SiDiscord />
                                 Sign In
-                            </Link>
+                            </a>
                         </Button>
                     ) : (
                         <Button variant="ghost" className="text-destructive" asChild>
-                            <Link href="/auth/logout">
+                            <a href="/auth/logout">
                                 <LogOutIcon />
                                 Logout
-                            </Link>
+                            </a>
                         </Button>
                     )}
 
