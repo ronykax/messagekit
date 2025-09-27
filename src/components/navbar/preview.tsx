@@ -43,7 +43,6 @@ import {
     DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Label } from "../ui/label";
-import { Skeleton } from "../ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { Textarea } from "../ui/textarea";
 
@@ -54,8 +53,6 @@ export default function PreviewNavbar({
     components: APIMessageTopLevelComponent[];
     setComponents: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
 }) {
-    const { user } = useUserStore();
-
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     function handleExport() {
@@ -153,20 +150,7 @@ export default function PreviewNavbar({
                 </DropdownMenu>
             </div>
             <div className="flex items-center gap-2">
-                {user === undefined ? (
-                    <Skeleton />
-                ) : (
-                    user === null && (
-                        <Button variant="ghost" asChild>
-                            <a href="/auth/login">
-                                <SiDiscord />
-                                Sign In
-                            </a>
-                        </Button>
-                    )
-                )}
-
-                <Button className="" variant={"outline"}>
+                <Button variant={"outline"}>
                     <SaveIcon />
                     Save
                 </Button>

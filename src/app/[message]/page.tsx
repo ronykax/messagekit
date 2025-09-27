@@ -12,7 +12,7 @@ import { useConfettiStore } from "@/lib/stores/confetti";
 import { useOutputStore } from "@/lib/stores/output";
 import { cn } from "@/lib/utils";
 
-const LEFT = 62.5;
+const LEFT = 60;
 
 export default function Page() {
     const [selectedTab, setSelectedTab] = useState<"editor" | "preview">("editor");

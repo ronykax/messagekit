@@ -3,6 +3,7 @@ import {
     ChevronRightIcon,
     EraserIcon,
     HouseIcon,
+    LogInIcon,
     MessageSquareIcon,
     PlusIcon,
     RedoIcon,
@@ -198,6 +199,19 @@ export default function EditorNavbar({
                             height={32}
                         />
                     </a>
+
+                    {user === null && (
+                        <Button
+                            variant="secondary"
+                            className="border border-green-400/25 bg-green-400/10 hover:bg-green-400/5 text-green-400 hover:text-green-400"
+                            asChild
+                        >
+                            <a href="/auth/login">
+                                <LogInIcon />
+                                Sign In
+                            </a>
+                        </Button>
+                    )}
 
                     {user ? (
                         <>
