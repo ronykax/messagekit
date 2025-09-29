@@ -1,3 +1,4 @@
+import { CircleDashedIcon } from "lucide-react";
 import { actionOptions } from "@/utils/constants";
 import { type BotActionBody, BotActions } from "@/utils/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -16,9 +17,9 @@ export default function ActionTypeSelector({
                 const type = val as BotActions;
 
                 if (type === BotActions.SendToChannel) {
-                    setActionData({ type, templateId: "", channelId: "" });
+                    setActionData({ type, messageId: "", channelId: "" });
                 } else if (type === BotActions.ReplyToInteraction) {
-                    setActionData({ type, templateId: "", ephemeral: false });
+                    setActionData({ type, messageId: "", ephemeral: false });
                 } else {
                     setActionData({ type });
                 }
@@ -30,6 +31,7 @@ export default function ActionTypeSelector({
             <SelectContent>
                 {actionOptions.map((option) => (
                     <SelectItem value={option.type} key={option.type}>
+                        <CircleDashedIcon />
                         {option.label}
                     </SelectItem>
                 ))}

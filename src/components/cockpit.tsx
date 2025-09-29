@@ -1,32 +1,35 @@
 "use client";
 
-import type { APIMessageTopLevelComponent } from "discord-api-types/v10";
+import type { APIGuild, APIMessageTopLevelComponent } from "discord-api-types/v10";
 import { EyeIcon, SlidersVerticalIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Confetti from "react-confetti-boom";
 import EditorPanel from "@/components/panels/editor";
 import PreviewPanel from "@/components/panels/preview";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useConfettiStore } from "@/lib/stores/confetti";
-import { useOutputStore } from "@/lib/stores/output";
 import { cn } from "@/lib/utils";
 
 const LEFT = 60;
 
-export default function Page() {
+export default function Cockpit({ messageId, guild }: { messageId: string; guild: APIGuild }) {
     const [selectedTab, setSelectedTab] = useState<"editor" | "preview">("editor");
-    const [components, setComponents] = useState<APIMessageTopLevelComponent[]>([]);
-
-    const editor = <EditorPanel components={components} setComponents={setComponents} />;
-    const preview = <PreviewPanel components={components} setComponents={setComponents} />;
-
-    const { setOutput } = useOutputStore();
+    const [items, setItems] = useState<APIMessageTopLevelComponent[]>([]);
     const { confetti } = useConfettiStore();
 
-    useEffect(() => {
-        setOutput(components);
-    }, [components, setOutput]);
+    const editor = (
+        <EditorPanel items={items} setItems={setItems} messageId={messageId} guild={guild} />
+    );
+
+    const preview = (
+        <PreviewPanel
+            components={items}
+            setComponents={setItems}
+            guild={guild}
+            messageId={messageId}
+        />
+    );
 
     return (
         <>

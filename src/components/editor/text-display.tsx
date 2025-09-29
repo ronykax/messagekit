@@ -2,6 +2,7 @@ import {
     type APIButtonComponent,
     type APIButtonComponentWithURL,
     type APIEmoji,
+    type APIGuild,
     type APISectionAccessoryComponent,
     type APIThumbnailComponent,
     ButtonStyle,
@@ -15,7 +16,6 @@ import {
     TextIcon,
     TrashIcon,
 } from "lucide-react";
-import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toComponentEmoji } from "@/utils/functions";
 import EmojiPicker from "../emoji-picker";
@@ -48,6 +48,8 @@ export default function TextDisplay({
     accessory,
     setAccessory,
     removeAccessory,
+    guild,
+    messageId,
 }: {
     content: string;
     onContentChange: (content: string) => void;
@@ -57,12 +59,12 @@ export default function TextDisplay({
     accessory?: APISectionAccessoryComponent;
     setAccessory?: (accessory: APISectionAccessoryComponent) => void;
     removeAccessory?: () => void;
+    guild: APIGuild;
+    messageId: string;
 }) {
     const [tab, setTab] = useState<"thumbnail" | "button">(
         accessory?.type === ComponentType.Button ? "button" : "thumbnail",
     );
-
-    const { message: templateId } = useParams();
 
     // image accesory
     const [imageUrl, setImageUrl] = useState("");
@@ -267,6 +269,7 @@ export default function TextDisplay({
                                                 }
                                             }}
                                             emoji={buttonEmoji}
+                                            guild={guild}
                                         />
                                     </div>
                                 </div>
@@ -322,7 +325,8 @@ export default function TextDisplay({
                                                 setButtonActionId(JSON.stringify(action.params))
                                             }
                                             action={buttonActionId}
-                                            disabled={templateId === "new"}
+                                            disabled={messageId === "new"}
+                                            messageId={messageId}
                                         />
                                         <HelperText text="Select an action that this button should trigger" />
                                     </div>

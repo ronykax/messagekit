@@ -1,6 +1,7 @@
 import {
     type APIButtonComponent,
     type APIEmoji,
+    type APIGuild,
     ButtonStyle,
     ComponentType,
 } from "discord-api-types/v10";
@@ -16,7 +17,6 @@ import {
     TrashIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { motionProps } from "@/utils/constants";
 import {
@@ -52,15 +52,17 @@ export default function ButtonGroup({
     onRemove,
     components,
     setComponents,
+    guild,
+    messageId,
 }: {
     onMoveUp: () => void;
     onMoveDown: () => void;
     onRemove: () => void;
     components: APIButtonComponent[];
     setComponents: (components: APIButtonComponent[]) => void;
+    guild: APIGuild;
+    messageId: string;
 }) {
-    const { message: templateId } = useParams();
-
     const [buttonLabel, setButtonLabel] = useState("");
     const [buttonEmoji, setButtonEmoji] = useState<string | APIEmoji | null>(null);
     const [buttonStyle, setButtonStyle] = useState<
@@ -136,6 +138,7 @@ export default function ButtonGroup({
                                             }
                                         }}
                                         emoji={buttonEmoji}
+                                        guild={guild}
                                     />
                                 </div>
                             </div>
@@ -190,7 +193,8 @@ export default function ButtonGroup({
                                             setButtonActionId(JSON.stringify(action.params))
                                         }
                                         action={buttonActionId}
-                                        disabled={templateId === "new"}
+                                        disabled={messageId === "new"}
+                                        messageId={messageId}
                                     />
                                 </div>
                             )}

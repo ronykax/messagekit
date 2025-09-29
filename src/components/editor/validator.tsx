@@ -1,13 +1,13 @@
 import {
     type APIComponentInContainer,
     type APIMessageComponent,
+    type APIMessageTopLevelComponent,
     ButtonStyle,
     ComponentType,
 } from "discord-api-types/v10";
 import { TriangleAlertIcon } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useMemo } from "react";
-import { useOutputStore } from "@/lib/stores/output";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 function getComponentName(type: ComponentType) {
@@ -23,7 +23,7 @@ function getComponentName(type: ComponentType) {
         case ComponentType.ActionRow:
             return "Buttons";
         default:
-            return "Component";
+            return "Item";
     }
 }
 
@@ -49,7 +49,7 @@ const getPathDescription = (path: number[]): string => {
     const currentIndex = path[path.length - 1];
 
     if (parentPath.length === 1) {
-        return `${toOrdinal(currentIndex)} item in ${toOrdinal(parentPath[0])} component`;
+        return `${toOrdinal(currentIndex)} child in ${toOrdinal(parentPath[0])} item`;
     }
 
     // For deeper nesting, keep it simple but clear
@@ -115,7 +115,7 @@ const validateComponents = (
         if (component.type === ComponentType.Container) {
             if (component.components.length <= 0) {
                 errors.push(
-                    `${pathDescription} (${componentName}) needs at least one component inside it.`,
+                    `${pathDescription} (${componentName}) needs at least one item inside it.`,
                 );
             } else {
                 errors.push(...validateComponents(component.components, currentPath));
@@ -126,10 +126,12 @@ const validateComponents = (
     return errors;
 };
 
-export default function ComponentsValidator() {
-    const { output } = useOutputStore();
-
-    const errors = useMemo(() => validateComponents(output), [output]);
+export default function ItemsValidator({
+    components,
+}: {
+    components: APIMessageTopLevelComponent[];
+}) {
+    const errors = useMemo(() => validateComponents(components), [components]);
 
     if (errors.length === 0) {
         return null;
@@ -142,22 +144,7 @@ export default function ComponentsValidator() {
             <AlertDescription>
                 <ul className="list-disc list-inside">
                     {errors.map((error, _index) => {
-                        const parts = error.split(/(\[.*?\])/g);
-
-                        return (
-                            <li key={nanoid(10)}>
-                                {parts.map((part) => {
-                                    if (part.startsWith("[") && part.endsWith("]")) {
-                                        return (
-                                            <span key={nanoid(10)} className="font-mono">
-                                                {part}
-                                            </span>
-                                        );
-                                    }
-                                    return <span key={nanoid(10)}>{part}</span>;
-                                })}
-                            </li>
-                        );
+                        return <li key={nanoid(10)}>{error}</li>;
                     })}
                 </ul>
             </AlertDescription>

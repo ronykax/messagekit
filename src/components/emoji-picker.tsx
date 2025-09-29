@@ -1,41 +1,43 @@
 "use client";
 
 import { PopoverClose } from "@radix-ui/react-popover";
-import type { APIEmoji } from "discord-api-types/v10";
+import type { APIEmoji, APIGuild } from "discord-api-types/v10";
 import { CDNRoutes, ImageFormat, RouteBases } from "discord-api-types/v10";
-import { CheckIcon, GlobeIcon, ShieldIcon, SmilePlusIcon, TrashIcon } from "lucide-react";
+import {
+    CheckIcon,
+    GlobeIcon,
+    LoaderIcon,
+    ShieldIcon,
+    SmilePlusIcon,
+    TrashIcon,
+} from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Twemoji from "react-twemoji";
-import { useGuildStore } from "@/lib/stores/guild";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Spinner } from "./ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
 export default function EmojiPicker({
     emoji,
     setEmoji,
+    guild,
 }: {
     emoji: APIEmoji | string | null;
     setEmoji: (emoji: APIEmoji | string | null) => void;
+    guild: APIGuild;
 }) {
-    const { guild } = useGuildStore();
     const [emojis, setEmojis] = useState<APIEmoji[] | null>(null);
     const [search, setSearch] = useState("");
     const [defaultEmoji, setDefaultEmoji] = useState("");
 
     useEffect(() => {
-        if (!guild) return;
-
-        fetch(`/api/discord/guilds/${guild}`)
+        fetch(`/api/discord/guilds/${guild.id}`)
             .then((res) => res.json())
             .then((data) => {
                 setEmojis(data.guild.emojis);
             });
-
-        setEmojis([]);
     }, [guild]);
 
     return (
@@ -116,7 +118,7 @@ export default function EmojiPicker({
                         />
                         {emojis === null ? (
                             <div className="flex justify-center">
-                                <Spinner size="medium" />
+                                <LoaderIcon className="animate-spin" />
                             </div>
                         ) : (
                             <div className="flex flex-wrap">

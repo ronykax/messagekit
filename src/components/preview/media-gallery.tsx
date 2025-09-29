@@ -21,7 +21,6 @@ const PreviewMediaTile = memo(function PreviewMediaTile({
 }: PreviewMediaTileProps) {
     const { files } = useFiles();
     const [url, setUrl] = useState<string | null>(null);
-    const [show, setShow] = useState(spoiler);
 
     useEffect(() => {
         if (mediaUrl.startsWith("attachment://")) {
@@ -47,14 +46,14 @@ const PreviewMediaTile = memo(function PreviewMediaTile({
 
     return (
         <div
-            className={`rounded-[4px] overflow-hidden relative ${aspect === "video" ? "aspect-video" : aspect === "square" ? "aspect-square" : ""} ${className ?? ""}`}
+            className={`rounded-lg overflow-hidden relative ${aspect === "video" ? "aspect-video" : aspect === "square" ? "aspect-square" : ""} ${className ?? ""}`}
         >
             {/* biome-ignore lint/performance/noImgElement: image preview */}
             <img
                 src={url}
                 className={cn(
                     `${aspect === "auto" ? "w-full h-auto" : "size-full"} object-cover`,
-                    spoiler && show && "blur-[44px]",
+                    spoiler && "blur-[44px]",
                 )}
                 alt={description ?? "image"}
                 width={256}
@@ -63,9 +62,8 @@ const PreviewMediaTile = memo(function PreviewMediaTile({
             <button
                 className={cn(
                     "absolute size-full inset-0 bg-white/10 flex justify-center items-center group hover:bg-white/15 cursor-pointer duration-75",
-                    spoiler && show ? "opacity-100" : "opacity-0",
+                    spoiler ? "opacity-100" : "opacity-0",
                 )}
-                onClick={() => setShow(!show)}
                 type="button"
             >
                 <div className="px-[12px] py-[8px] leading-none rounded-full bg-[#00000099] text-[15px] font-semibold tracking-[0.5px] group-hover:bg-black">

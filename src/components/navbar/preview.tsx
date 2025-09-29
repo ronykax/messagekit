@@ -1,26 +1,29 @@
 import { SiDiscord } from "@icons-pack/react-simple-icons";
-import { type APIMessageTopLevelComponent, MessageFlags } from "discord-api-types/v10";
+import {
+    type APIGuild,
+    type APIMessageTopLevelComponent,
+    MessageFlags,
+} from "discord-api-types/v10";
 import {
     BotIcon,
     CheckIcon,
-    DownloadIcon,
     EditIcon,
     EllipsisIcon,
     ExternalLinkIcon,
     LogOutIcon,
     SaveIcon,
     SendIcon,
-    UploadIcon,
     WebhookIcon,
 } from "lucide-react";
-import { type Dispatch, type SetStateAction, useEffect, useMemo, useRef, useState } from "react";
+import { nanoid } from "nanoid";
+import { type Dispatch, type SetStateAction, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useConfettiStore } from "@/lib/stores/confetti";
 import { useFiles } from "@/lib/stores/files";
-import { useGuildStore } from "@/lib/stores/guild";
-import { useOutputStore } from "@/lib/stores/output";
 import { useUserStore } from "@/lib/stores/user";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import type { Json } from "@/utils/database.types";
 import type { SendOptions } from "@/utils/types";
 import HelperText from "../helper-text";
 import ChannelSelector from "../select/channels";
@@ -42,133 +45,182 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { RainbowButton } from "../ui/rainbow-button";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { Textarea } from "../ui/textarea";
 
-export default function PreviewNavbar({
-    components,
-    setComponents,
-}: {
-    components: APIMessageTopLevelComponent[];
-    setComponents: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
-}) {
-    const fileInputRef = useRef<HTMLInputElement>(null);
+const supabase = createClient();
 
-    function handleExport() {
-        const download = new Blob([JSON.stringify(components, null, 4)], {
-            type: "application/json",
+export default function PreviewNavbar({
+    items,
+    guild,
+    messageId,
+}: {
+    items: APIMessageTopLevelComponent[];
+    setItems: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
+    messageId: string;
+    guild: APIGuild;
+}) {
+    const { user } = useUserStore();
+
+    const [showNewTemplateDialog, setShowNewTemplateDialog] = useState(false);
+    const [newTemplateName, setNewTemplateName] = useState("");
+
+    async function handleUpdateMessage() {
+        if (!user) return;
+
+        const { error } = await supabase.from("messages").upsert({
+            id: messageId,
+            items: items as unknown as Json,
+            updated_at: new Date().toISOString(),
+            uid: user.id,
         });
 
-        const url = URL.createObjectURL(download);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "msgkit-export.json";
-        a.click();
-
-        URL.revokeObjectURL(url);
+        if (error) {
+            toast.error("Something went wrong");
+        } else {
+            toast.success("Saved");
+        }
     }
 
-    async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    async function handleSaveTemplate() {
+        if (!user) return;
+        const randomTemplateId = nanoid(10);
 
-        const text = await file.text();
-        const data = JSON.parse(text);
+        const { error } = await supabase.from("messages").insert({
+            id: randomTemplateId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            uid: user.id,
+            items: items as unknown as Json,
+            name: newTemplateName,
+        });
 
-        setComponents(data);
+        if (error) {
+            return toast.error("Something went wrong");
+        } else {
+            window.location.href = `/${guild.id}/${randomTemplateId}`;
+        }
     }
 
     return (
-        <div className="p-4 flex items-center justify-between border-b border-dashed overflow-x-auto">
-            <div className="flex items-center gap-2">
-                <div className="inline-flex w-fit -space-x-px rounded-md shadow-xs rtl:space-x-reverse">
-                    <Button
-                        variant="outline"
-                        className="rounded-none rounded-l-md shadow-none focus-visible:z-10"
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <DownloadIcon />
-                        Import
-                        <input
-                            className="sr-only"
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleImport}
-                        />
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="rounded-none rounded-r-md shadow-none focus-visible:z-10"
-                        onClick={handleExport}
-                    >
-                        <UploadIcon />
-                        Export
-                    </Button>
+        <>
+            <div className="p-4 flex items-center justify-between border-b border-dashed overflow-x-auto">
+                <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button size={"icon"} variant={"ghost"}>
+                                <EllipsisIcon />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem asChild>
+                                <a
+                                    href="https://discord.com/oauth2/authorize?client_id=1067725778512519248"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="cursor-pointer"
+                                >
+                                    <ExternalLinkIcon />
+                                    Add App
+                                </a>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild>
+                                <a
+                                    href="https://discord.gg/5bBM2TVDD3"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="cursor-pointer"
+                                >
+                                    <SiDiscord />
+                                    Get Support
+                                </a>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
+                            <DropdownMenuItem asChild variant="destructive">
+                                <a href="/auth/logout" className="cursor-pointer">
+                                    <LogOutIcon />
+                                    Logout
+                                </a>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button size={"icon"} variant={"ghost"}>
-                            <EllipsisIcon />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuItem asChild>
-                            <a
-                                href="https://discord.com/oauth2/authorize?client_id=1067725778512519248"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="cursor-pointer"
-                            >
-                                <ExternalLinkIcon />
-                                Add App
-                            </a>
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem asChild>
-                            <a
-                                href="https://discord.gg/5bBM2TVDD3"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="cursor-pointer"
-                            >
+                <div className="flex items-center gap-2">
+                    {user === null ? (
+                        <RainbowButton variant="default" asChild className="text-black">
+                            <a href="/auth/login">
                                 <SiDiscord />
-                                Get Support
+                                Sign In
                             </a>
-                        </DropdownMenuItem>
+                        </RainbowButton>
+                    ) : (
+                        user && (
+                            <Button
+                                variant={"outline"}
+                                onClick={() => {
+                                    if (messageId === "new") {
+                                        setShowNewTemplateDialog(!showNewTemplateDialog);
+                                    } else {
+                                        handleUpdateMessage();
+                                    }
+                                }}
+                                disabled={!user || items.length === 0}
+                            >
+                                <SaveIcon />
+                                Save
+                            </Button>
+                        )
+                    )}
 
-                        <DropdownMenuSeparator />
-
-                        <DropdownMenuItem asChild variant="destructive">
-                            <a href="/auth/logout" className="cursor-pointer">
-                                <LogOutIcon />
-                                Logout
-                            </a>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                    <SendMessageButton items={items} guild={guild} />
+                </div>
             </div>
-            <div className="flex items-center gap-2">
-                <Button variant={"outline"}>
-                    <SaveIcon />
-                    Save
-                </Button>
-
-                <SendMessageButton />
-            </div>
-        </div>
+            <Dialog onOpenChange={setShowNewTemplateDialog} open={showNewTemplateDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>New Message</DialogTitle>
+                        <DialogDescription>Create new message template</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex flex-col gap-2">
+                        <Label htmlFor="new-template-name">Name</Label>
+                        <Input
+                            id="new-template-name"
+                            placeholder="Enter name"
+                            onChange={(e) => setNewTemplateName(e.currentTarget.value)}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                            <Button onClick={handleSaveTemplate}>Confirm</Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }
 
-function SendMessageButton() {
-    const { output } = useOutputStore();
+function SendMessageButton({
+    items,
+    guild,
+}: {
+    items: APIMessageTopLevelComponent[];
+    guild: APIGuild;
+}) {
     const { user } = useUserStore();
 
     const [webhookUrl, setWebhookUrl] = useState("");
     const [selectedChannel, setSelectedChannel] = useState("");
     const [selectedTab, setSelectedTab] = useState<"webhook" | "bot" | "server">("webhook");
-    const { guild } = useGuildStore();
 
     useEffect(() => {
         const saved = localStorage.getItem("webhookUrl");
@@ -203,7 +255,7 @@ function SendMessageButton() {
         formData.append(
             "message",
             JSON.stringify({
-                components: output,
+                components: items,
                 flags: MessageFlags.IsComponentsV2,
             }),
         );
@@ -223,11 +275,10 @@ function SendMessageButton() {
         })
             .then((res) => res.json())
             .then((data) => {
-                console.log("Error sending message:", JSON.stringify(data));
-
                 if (data.success) {
                     toast.success("Sent!");
                     localStorage.setItem("webhookUrl", webhookUrl);
+
                     setConfetti(true);
                 } else {
                     toast.error("Something went wrong", {
@@ -240,10 +291,10 @@ function SendMessageButton() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button disabled={output.length === 0}>
+                <RainbowButton className="text-black cursor-pointer" disabled={items.length === 0}>
                     <SendIcon />
                     Send Message
-                </Button>
+                </RainbowButton>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
@@ -267,7 +318,7 @@ function SendMessageButton() {
                         </TabsTrigger>
                         <TabsTrigger
                             value="bot"
-                            disabled={user === null || user === undefined || guild === null}
+                            disabled={user === null || user === undefined || guild.id === null}
                         >
                             <BotIcon />
                             Bot
@@ -305,7 +356,7 @@ function SendMessageButton() {
                         <Label>
                             Channel<span className="text-destructive">*</span>
                         </Label>
-                        <ChannelSelector onChannelChange={setSelectedChannel} />
+                        <ChannelSelector onChannelChange={setSelectedChannel} guild={guild} />
                         <HelperText text="Make sure Message Kit can send messages in the selected channel." />
                     </div>
                 </Tabs>

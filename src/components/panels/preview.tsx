@@ -1,5 +1,5 @@
 import { SiDiscord } from "@icons-pack/react-simple-icons";
-import type { APIMessageTopLevelComponent } from "discord-api-types/v10";
+import type { APIGuild, APIMessageTopLevelComponent } from "discord-api-types/v10";
 import { CheckIcon, CircleIcon, CopyIcon, DotIcon } from "lucide-react";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import PreviewNavbar from "../navbar/preview";
@@ -9,9 +9,13 @@ import { Button } from "../ui/button";
 export default function PreviewPanel({
     components,
     setComponents,
+    messageId,
+    guild,
 }: {
     components: APIMessageTopLevelComponent[];
     setComponents: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
+    messageId: string;
+    guild: APIGuild;
 }) {
     const [copied, setCopied] = useState(false);
 
@@ -25,7 +29,12 @@ export default function PreviewPanel({
 
     return (
         <div className="max-h-[100svh] flex flex-col h-full">
-            <PreviewNavbar components={components} setComponents={setComponents} />
+            <PreviewNavbar
+                items={components}
+                setItems={setComponents}
+                messageId={messageId}
+                guild={guild}
+            />
             <div className="p-4 whitespace-pre-wrap flex-1 overflow-y-auto">
                 <div className="flex flex-col bg-card rounded-xl border overflow-hidden">
                     <div className="p-2 border-b flex items-center justify-between">

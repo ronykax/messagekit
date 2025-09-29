@@ -19,12 +19,12 @@ export enum BotActions {
 }
 
 export const SendToChannelSchema = z.object({
-    templateId: z.string(),
+    messageId: z.string(),
     channelId: z.string(),
 });
 
 export const ReplyToInteractionSchema = z.object({
-    templateId: z.string(),
+    messageId: z.string(),
     ephemeral: z.boolean().default(false),
 });
 
@@ -42,11 +42,11 @@ export type BotActionBody = z.infer<typeof BotActionSchema>;
 
 export type Guild = RESTAPIPartialCurrentUserGuild;
 
-export type RowTemplate = {
-    components: Json;
+export type RowMessage = {
+    items: Json;
     created_at: string;
     name: string | null;
-    template_id: string;
+    id: string;
     uid: string;
     updated_at: string;
 };
@@ -60,3 +60,12 @@ export type RowAction = {
     uid: string;
     updated_at: string;
 };
+
+export type MarkdownNode =
+    | { type: "linebreak" }
+    | { type: "heading"; level: number; content: string }
+    | { type: "paragraph"; content: string }
+    | { type: "small"; content: string }
+    | { type: "list"; ordered: boolean; items: string[] };
+
+export type CockpitMode = "new" | "guild-new" | "guild-edit";

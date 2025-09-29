@@ -6,9 +6,10 @@ import {
     ImageFormat,
     RouteBases,
 } from "discord-api-types/v10";
+import { ExternalLinkIcon } from "lucide-react";
 import Twemoji from "react-twemoji";
 import { cn } from "@/lib/utils";
-import ExternalLinkIcon from "./icons/external-link";
+// import ExternalLinkIcon from "./icons/external-link";
 
 export default function PreviewButton({
     button,
@@ -21,13 +22,13 @@ export default function PreviewButton({
         button.style === ButtonStyle.Primary
             ? "bg-primary hover:bg-[#4654c0]"
             : button.style === ButtonStyle.Secondary
-              ? "bg-[#3e3f45] hover:bg-[#46474e]"
+              ? "bg-[#29292d] hover:bg-[#3b3b40]"
               : button.style === ButtonStyle.Success
                 ? "bg-[#00863a] hover:bg-[#047e37]"
                 : button.style === ButtonStyle.Danger
                   ? "bg-[#d22d39] hover:bg-[#b42831]"
                   : button.style === ButtonStyle.Link
-                    ? "bg-[#3e3f45] hover:bg-[#46474e]"
+                    ? "bg-[#29292d] hover:bg-[#3b3b40]"
                     : "";
 
     const containerStyle =
@@ -44,28 +45,19 @@ export default function PreviewButton({
                     : "";
 
     const parentClassName = cn(
-        "flex items-center px-[11px] h-[32px] rounded-[8px] duration-150 cursor-pointer text-nowrap",
+        "flex items-center px-4 py-2 rounded-md duration-150 cursor-pointer text-nowrap h-fit",
         container ? containerStyle : topLevelStyle,
     );
 
     function Label() {
-        return (
-            <span
-                className={cn(
-                    "my-auto text-center text-[14px] font-medium leading-[18px]",
-                    !button.emoji && "min-w-[32px]",
-                )}
-            >
-                {button.label}
-            </span>
-        );
+        return <span className="my-auto text-center text-sm font-medium">{button.label}</span>;
     }
 
     function Emoji() {
         return button.emoji?.id ? (
             // biome-ignore lint/performance/noImgElement: i love goth mommy
             <img
-                className="size-[19.250px] mr-[4px]"
+                className="size-5 mr-1"
                 src={
                     RouteBases.cdn +
                     CDNRoutes.emoji(
@@ -78,9 +70,7 @@ export default function PreviewButton({
                 height={32}
             />
         ) : (
-            <Twemoji options={{ className: "size-[19.250px] mr-[4px]" }}>
-                {button.emoji?.name}
-            </Twemoji>
+            <Twemoji options={{ className: "size-5 mr-1" }}>{button.emoji?.name}</Twemoji>
         );
     }
 
@@ -89,7 +79,7 @@ export default function PreviewButton({
             <Emoji />
             <Label />
             <span className="ml-[8px] my-auto">
-                <ExternalLinkIcon />
+                <ExternalLinkIcon className="size-4" />
             </span>
         </a>
     ) : (

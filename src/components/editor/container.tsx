@@ -4,6 +4,7 @@ import {
     type APIButtonComponent,
     type APIComponentInContainer,
     type APIFileComponent,
+    type APIGuild,
     type APIMediaGalleryComponent,
     type APISeparatorComponent,
     ComponentType,
@@ -41,6 +42,8 @@ export default function Container({
     setComponents,
     setColor,
     color,
+    guild,
+    messageId,
 }: {
     onMoveUp: () => void;
     onMoveDown: () => void;
@@ -49,6 +52,8 @@ export default function Container({
     setComponents: (components: APIComponentInContainer[]) => void;
     color: number | null;
     setColor: (color: number | null) => void;
+    guild: APIGuild;
+    messageId: string;
 }) {
     const [colorToSet, setColorToSet] = useState("#000000");
 
@@ -99,7 +104,7 @@ export default function Container({
                                 className="h-7 text-xs font-medium"
                             >
                                 <PlusIcon />
-                                Add Component
+                                Add Item
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
@@ -125,7 +130,7 @@ export default function Container({
                                         onClick={component.onClick}
                                         disabled={component.disabled}
                                     >
-                                        <component.icon />
+                                        <component.icon className="text-muted-foreground" />
                                         {component.name}
                                     </DropdownMenuItem>
                                 </Fragment>
@@ -212,6 +217,8 @@ export default function Container({
                                     onMoveUp={() => handleMove(index, "up")}
                                     onMoveDown={() => handleMove(index, "down")}
                                     onRemove={() => handleRemove(index)}
+                                    guild={guild}
+                                    messageId={messageId}
                                 />
                             );
                         } else if (component.type === ComponentType.Section) {
@@ -253,6 +260,8 @@ export default function Container({
                                     onMoveUp={() => handleMove(index, "up")}
                                     onMoveDown={() => handleMove(index, "down")}
                                     onRemove={() => handleRemove(index)}
+                                    guild={guild}
+                                    messageId={messageId}
                                 />
                             );
                         } else if (component.type === ComponentType.Separator) {
@@ -316,6 +325,8 @@ export default function Container({
                                             })),
                                         )
                                     }
+                                    guild={guild}
+                                    messageId={messageId}
                                 />
                             );
                         } else if (component.type === ComponentType.File) {

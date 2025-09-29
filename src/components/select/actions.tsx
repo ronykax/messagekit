@@ -1,6 +1,6 @@
-import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
-import { useState } from "react";
-import { useDataStore } from "@/lib/stores/data";
+import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, ChevronsUpDownIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import type { RowAction } from "@/utils/types";
 import { Button } from "../ui/button";
@@ -14,23 +14,39 @@ import {
 } from "../ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
-const _supabase = createClient();
+const supabase = createClient();
 
 export default function ActionSelector({
     setAction,
     action,
     disabled = false,
+    messageId,
 }: {
     setAction: (action: RowAction) => void;
     action: string;
     disabled?: boolean;
+    messageId: string;
 }) {
-    const { actions } = useDataStore();
-
     const [open, setOpen] = useState(false);
     const [selectedValue, setSelectedValue] = useState(action);
+    const [actions, setActions] = useState<RowAction[]>([]);
 
-    const currentActions = actions ?? [];
+    useEffect(() => {
+        if (!open) return;
+
+        supabase
+            .from("actions")
+            .select("*")
+            .eq("template", messageId)
+            .limit(25)
+            .then(({ data, error }) => {
+                if (error) {
+                    toast.error("Failed to get actions");
+                } else {
+                    setActions(data);
+                }
+            });
+    }, [messageId, open]);
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -45,7 +61,7 @@ export default function ActionSelector({
                     {(() => {
                         if (!selectedValue) return "Select action...";
 
-                        const selectedAction = currentActions.find(
+                        const selectedAction = actions.find(
                             (action) => JSON.stringify(action.params) === selectedValue,
                         );
 
@@ -58,11 +74,9 @@ export default function ActionSelector({
                 <Command>
                     <CommandInput placeholder="Search action..." />
                     <CommandList>
-                        <CommandEmpty>
-                            {currentActions.length === 0 && "No actions found"}
-                        </CommandEmpty>
+                        <CommandEmpty>No actions found</CommandEmpty>
                         <CommandGroup>
-                            {currentActions.map((item) => (
+                            {actions.map((item) => (
                                 <CommandItem
                                     key={`${item.id}`}
                                     onSelect={() => {
@@ -82,6 +96,17 @@ export default function ActionSelector({
                                 </CommandItem>
                             ))}
                         </CommandGroup>
+                        <div className="flex border-t gap-1 p-1">
+                            <span className="text-xs ml-2 text-muted-foreground my-auto mr-auto">
+                                Page 1
+                            </span>
+                            <Button className="size-7" size="icon" variant="ghost">
+                                <ArrowLeftIcon />
+                            </Button>
+                            <Button className="size-7" size="icon" variant="ghost">
+                                <ArrowRightIcon />
+                            </Button>
+                        </div>
                     </CommandList>
                 </Command>
             </PopoverContent>

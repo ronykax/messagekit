@@ -1,3 +1,4 @@
+import type { APIGuild } from "discord-api-types/v10";
 import {
     EditIcon,
     EllipsisVerticalIcon,
@@ -6,15 +7,13 @@ import {
     SearchIcon,
     TrashIcon,
 } from "lucide-react";
-import { useParams } from "next/navigation";
 import { type Dispatch, type SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useDataStore } from "@/lib/stores/data";
 import { useUserStore } from "@/lib/stores/user";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { getActionTypeLabel } from "@/utils/functions";
-import { type BotActionBody, BotActionSchema, BotActions } from "@/utils/types";
+import { type BotActionBody, BotActionSchema, BotActions, type RowAction } from "@/utils/types";
 import HelperText from "../helper-text";
 import RequiredIndicator from "../required-indicator";
 import ActionTypeSelector from "../select/action-type";
@@ -48,25 +47,24 @@ import {
     SheetTitle,
 } from "../ui/sheet";
 import { Skeleton } from "../ui/skeleton";
-import ReplyToInteractionFormBody from "./forms/reply-to-interaction";
-import SendToChannelFormBody from "./forms/send-to-channel";
+import ReplyToInteractionFormBody from "./action-data-forms/reply-to-interaction";
+import SendToChannelFormBody from "./action-data-forms/send-to-channel";
 
 const supabase = createClient();
 
 interface Props {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>;
+    messageId: string;
+    guild: APIGuild;
 }
 
-export default function ActionsSheet({ open, setOpen }: Props) {
+export default function ActionsSheet({ open, setOpen, messageId, guild }: Props) {
     const { user } = useUserStore();
-
-    const { message: param } = useParams();
-    const templateId = `${param}`;
 
     const [loading, setLoading] = useState(true);
 
-    const { actions, setActions } = useDataStore();
+    const [actions, setActions] = useState<RowAction[]>([]);
     const [actionData, setActionData] = useState<BotActionBody | null>(null); // object for building new action data (params)
 
     const [newActionName, setNewActionName] = useState("");
@@ -75,16 +73,16 @@ export default function ActionsSheet({ open, setOpen }: Props) {
     const fetchedRef = useRef<Record<string, boolean>>({});
 
     useEffect(() => {
-        if (templateId === "new") return;
+        if (messageId === "new") return;
         if (!open) return;
 
-        if (fetchedRef.current[templateId]) return;
-        fetchedRef.current[templateId] = true;
+        if (fetchedRef.current[messageId]) return;
+        fetchedRef.current[messageId] = true;
 
         supabase
             .from("actions")
             .select("*")
-            .filter("template", "eq", templateId)
+            .filter("template", "eq", messageId)
             .limit(25)
             .then(({ data, error }) => {
                 if (error) {
@@ -95,7 +93,7 @@ export default function ActionsSheet({ open, setOpen }: Props) {
 
                 setLoading(false);
             });
-    }, [templateId, open, setActions]);
+    }, [messageId, open]);
 
     const filteredActions = useMemo(() => {
         if (searchValue.trim().length > 0) {
@@ -110,9 +108,13 @@ export default function ActionsSheet({ open, setOpen }: Props) {
         return newActionName.trim().length > 0;
     }, [newActionName]);
 
+    useEffect(() => {
+        setNewActionName(searchValue);
+    }, [searchValue]);
+
     async function createNewAction() {
         if (!user) return;
-        if (templateId === "new") return;
+        if (messageId === "new") return;
 
         const parsed = BotActionSchema.safeParse(actionData);
 
@@ -127,7 +129,7 @@ export default function ActionsSheet({ open, setOpen }: Props) {
                 updated_at: new Date().toISOString(),
                 uid: user.id,
                 params: parsed.data,
-                template: templateId,
+                template: messageId,
                 name: newActionName,
             })
             .select()
@@ -213,7 +215,7 @@ export default function ActionsSheet({ open, setOpen }: Props) {
                                         onChange={(e) => setNewActionName(e.currentTarget.value)}
                                         value={newActionName}
                                     />
-                                    <HelperText text="Give your action a memorable name (can be descriptive)" />
+                                    <HelperText text="Give your action a memorable name" />
                                 </div>
 
                                 <div className="flex flex-col gap-6">
@@ -231,6 +233,7 @@ export default function ActionsSheet({ open, setOpen }: Props) {
                                     <FormBody
                                         actionData={actionData}
                                         setActionData={setActionData}
+                                        guild={guild}
                                     />
                                 </div>
 
@@ -319,15 +322,19 @@ export default function ActionsSheet({ open, setOpen }: Props) {
 function FormBody({
     actionData,
     setActionData,
+    guild,
 }: {
     actionData: BotActionBody | null;
     setActionData: Dispatch<React.SetStateAction<BotActionBody | null>>;
+    guild: APIGuild;
 }) {
     if (!actionData) return null;
 
     switch (actionData.type) {
         case BotActions.SendToChannel:
-            return <SendToChannelFormBody data={actionData} setData={setActionData} />;
+            return (
+                <SendToChannelFormBody data={actionData} setData={setActionData} guild={guild} />
+            );
         case BotActions.ReplyToInteraction:
             return <ReplyToInteractionFormBody data={actionData} setData={setActionData} />;
     }
