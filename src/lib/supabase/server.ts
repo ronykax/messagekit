@@ -1,43 +1,36 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { Database } from "@/utils/database.types";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
-const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY;
-
-/**
- * Create a server-side Supabase client.
- *
- * @param useServiceRole - when true, use SUPABASE_SECRET_KEY (service role). Default false.
- */
-export const createClient = async (useServiceRole = false) => {
+export async function createClient({ useServiceRole = false }: { useServiceRole?: boolean } = {}) {
     const cookieStore = await cookies();
 
-    if (!supabaseUrl) {
-        throw new Error("Missing SUPABASE_URL environment variable");
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+    const key = useServiceRole
+        ? process.env.SUPABASE_SECRET_KEY
+        : process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+
+    if (!url || !key) {
+        throw new Error("missing env variables in supabase/server.ts");
     }
 
-    const key = useServiceRole ? supabaseSecretKey : supabasePublishableKey;
-
-    if (!key) {
-        throw new Error(
-            useServiceRole
-                ? "Missing SUPABASE_SECRET_KEY for service role usage"
-                : "Missing NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY",
-        );
-    }
-
-    // NOTE: service role key is powerful — never expose it to the browser.
-    return createServerClient(supabaseUrl, key, {
+    return createServerClient<Database>(url, key, {
         cookies: {
             getAll() {
                 return cookieStore.getAll();
             },
             setAll(cookiesToSet) {
-                cookiesToSet.forEach(({ name, value, options }) => {
-                    cookieStore.set(name, value, options);
-                });
+                try {
+                    for (const { name, value, options } of cookiesToSet) {
+                        cookieStore.set(name, value, options);
+                    }
+                } catch {
+                    // The `setAll` method was called from a Server Component.
+                    // This can be ignored if you have middleware refreshing
+                    // user sessions.
+                }
             },
         },
     });
-};
+}

@@ -12,6 +12,17 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
     try {
+        // Check auth first
+        const supabase = await createClient();
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error || !data.session?.provider_token) {
+            return NextResponse.json(
+                { guilds: null, success: false, error: "unauthorized" },
+                { status: 401 },
+            );
+        }
+
         const botGuilds = await getBotGuilds();
         if (!botGuilds) {
             return NextResponse.json({
@@ -21,7 +32,7 @@ export async function GET() {
             });
         }
 
-        const userGuilds = await getUserGuilds();
+        const userGuilds = await getUserGuilds(data.session.provider_token);
         if (!userGuilds) {
             return NextResponse.json({
                 guilds: null,
@@ -70,15 +81,7 @@ async function getBotGuilds() {
     }
 }
 
-async function getUserGuilds() {
-    const supabase = await createClient();
-
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw new Error("failed to fetch session!");
-
-    const providerToken = data.session?.provider_token;
-    if (!providerToken) throw new Error("failed to get provider token!");
-
+async function getUserGuilds(providerToken: string) {
     try {
         const response = await fetch(RouteBases.api + Routes.userGuilds(), {
             method: "GET",

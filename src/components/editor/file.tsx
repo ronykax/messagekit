@@ -1,11 +1,11 @@
 import type { APIFileComponent } from "discord-api-types/v10";
 import { FileIcon } from "lucide-react";
-import { useFiles } from "@/lib/stores/files";
 import { sanitizeFileName } from "@/utils/functions";
-import NewBuilder from "../new-builder";
+import { useFiles } from "@/utils/stores/files";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
+import Wrapper from "./wrapper";
 
 export default function File({
     onMoveUp,
@@ -15,7 +15,6 @@ export default function File({
     spoiler,
     file,
     setFile,
-    component,
 }: {
     onMoveUp: () => void;
     onMoveDown: () => void;
@@ -24,7 +23,6 @@ export default function File({
     spoiler: boolean;
     file: APIFileComponent;
     setFile: (file: APIFileComponent) => void;
-    component: APIFileComponent;
 }) {
     const { files, setFiles } = useFiles();
 
@@ -42,9 +40,8 @@ export default function File({
     };
 
     return (
-        <NewBuilder
+        <Wrapper
             name="File"
-            tag={component.id ?? null}
             icon={<FileIcon />}
             onMoveUp={onMoveUp}
             onMoveDown={onMoveDown}
@@ -69,6 +66,6 @@ export default function File({
             }
         >
             <Input type="file" onChange={handleFileUpload} />
-        </NewBuilder>
+        </Wrapper>
     );
 }

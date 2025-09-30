@@ -5,6 +5,7 @@ import {
     type APIButtonComponent,
     type APIContainerComponent,
     type APIFileComponent,
+    type APIGuild,
     type APIMediaGalleryComponent,
     type APIMessageTopLevelComponent,
     type APISeparatorComponent,
@@ -12,86 +13,69 @@ import {
     SeparatorSpacingSize,
 } from "discord-api-types/v10";
 import { AnimatePresence } from "motion/react";
-import { useParams, useRouter } from "next/navigation";
-import { type Dispatch, type SetStateAction, useEffect } from "react";
-import { useUserStore } from "@/lib/stores/user";
+import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { defaultComponents } from "@/utils/constants";
 import { moveItem, randomNumber, removeAt, updateAt } from "@/utils/functions";
-import ComponentsValidator from "../components-validator";
+import { useUserStore } from "@/utils/stores/user";
 import ButtonGroup from "../editor/button-group";
 import Container from "../editor/container";
 import File from "../editor/file";
 import MediaGallery from "../editor/media-gallery";
 import YesSeparator from "../editor/separator";
 import TextDisplay from "../editor/text-display";
+import ItemsValidator from "../editor/validator";
 import EditorNavbar from "../navbar/editor";
 
-export default function EditorPanel({
-    components,
-    setComponents,
-}: {
-    components: APIMessageTopLevelComponent[];
-    setComponents: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
-}) {
-    const router = useRouter();
-    const { message: templateId } = useParams();
+const supabase = createClient();
 
+export default function EditorPanel({
+    items,
+    setItems,
+    messageId,
+    guild,
+}: {
+    items: APIMessageTopLevelComponent[];
+    setItems: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
+    messageId: string;
+    guild: APIGuild;
+}) {
     const { user } = useUserStore();
 
+    const hasFetchedRef = useRef<string | null>(null);
+
     useEffect(() => {
-        if (!user?.id) return;
+        if (!user) return;
+        if (messageId === "new") return;
+        if (hasFetchedRef.current === messageId) return;
 
-        const run = async () => {
-            if (templateId === "new") {
-                const saved = localStorage.getItem("output-json");
-
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-
-                    if (Array.isArray(parsed)) {
-                        setComponents(parsed);
-                    }
+        supabase
+            .from("messages")
+            .select("items")
+            .eq("id", messageId)
+            .single()
+            .then(({ data, error }) => {
+                if (error) {
+                    toast.error("Failed to fetch message");
                 } else {
-                    setComponents(defaultComponents);
+                    setItems(data.items as unknown as APIMessageTopLevelComponent[]);
+                    hasFetchedRef.current = messageId;
                 }
-
-                return;
-            }
-
-            const supabase = createClient();
-
-            const { data, error } = await supabase
-                .from("templates")
-                .select("*")
-                .filter("template_id", `eq`, templateId)
-                .eq("uid", user.id)
-                .single();
-
-            if (error) {
-                router.push("/new");
-            } else {
-                return setComponents(data.components);
-            }
-        };
-
-        run();
-    }, [templateId, router, user?.id, setComponents]);
+            });
+    }, [messageId, setItems, user]);
 
     return (
         <div className="max-h-[100svh] flex flex-col h-full">
-            <EditorNavbar
-                setComponents={setComponents}
-                components={components}
-                templateId={`${templateId}`}
-            />
+            <EditorNavbar setItems={setItems} items={items} messageId={messageId} guild={guild} />
             <div className="p-4 flex flex-col gap-4 flex-1 overflow-y-auto">
                 <AnimatePresence>
-                    <ComponentsValidator key="alert" />
-                    <Components
+                    <ItemsValidator key="alert" components={items} />
+                    <Items
                         key="components"
-                        components={components}
-                        setComponents={setComponents}
+                        items={items}
+                        setItems={setItems}
+                        guild={guild}
+                        messageId={messageId}
                     />
                 </AnimatePresence>
             </div>
@@ -99,28 +83,31 @@ export default function EditorPanel({
     );
 }
 
-function Components({
-    components,
-    setComponents,
+function Items({
+    items,
+    setItems,
+    guild,
+    messageId,
 }: {
-    components: APIMessageTopLevelComponent[];
-    setComponents: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
+    items: APIMessageTopLevelComponent[];
+    setItems: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
+    guild: APIGuild;
+    messageId: string;
 }) {
     const handleMove = (index: number, direction: "up" | "down") =>
-        setComponents((previousComponents) => moveItem(previousComponents, index, direction));
+        setItems((previousComponents) => moveItem(previousComponents, index, direction));
 
     const handleRemove = (index: number) =>
-        setComponents((previousComponents) => removeAt(previousComponents, index));
+        setItems((previousComponents) => removeAt(previousComponents, index));
 
-    return components.map((component, index) => {
+    return items.map((component, index) => {
         if (component.type === ComponentType.TextDisplay) {
             return (
                 <TextDisplay
                     key={component.id}
-                    component={component}
                     content={component.content}
                     onContentChange={(content) =>
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, () => ({
                                 ...component,
                                 content: content,
@@ -128,7 +115,7 @@ function Components({
                         )
                     }
                     setAccessory={(accessory) =>
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, () => ({
                                 id: component.id,
                                 type: ComponentType.Section,
@@ -145,16 +132,17 @@ function Components({
                     onMoveUp={() => handleMove(index, "up")}
                     onMoveDown={() => handleMove(index, "down")}
                     onRemove={() => handleRemove(index)}
+                    guild={guild}
+                    messageId={messageId}
                 />
             );
         } else if (component.type === ComponentType.Section) {
             return (
                 <TextDisplay
                     key={component.id}
-                    component={component}
                     content={component.components[0].content}
                     onContentChange={(content) =>
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, () => ({
                                 ...component,
                                 components: [{ ...component.components[0], content: content }],
@@ -163,7 +151,7 @@ function Components({
                     }
                     accessory={component.accessory}
                     setAccessory={(accessory) =>
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, () => ({
                                 id: randomNumber(),
                                 ...component,
@@ -172,7 +160,7 @@ function Components({
                         )
                     }
                     removeAccessory={() =>
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, () => ({
                                 id: component.id,
                                 type: ComponentType.TextDisplay,
@@ -183,17 +171,18 @@ function Components({
                     onMoveUp={() => handleMove(index, "up")}
                     onMoveDown={() => handleMove(index, "down")}
                     onRemove={() => handleRemove(index)}
+                    guild={guild}
+                    messageId={messageId}
                 />
             );
         } else if (component.type === ComponentType.Separator) {
             return (
                 <YesSeparator
                     key={component.id}
-                    component={component}
                     spacing={component.spacing ?? SeparatorSpacingSize.Small}
                     divider={component.divider ?? true}
                     onChangeSpacing={(size) => {
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, (old) => ({
                                 ...(old as APISeparatorComponent),
                                 spacing: size,
@@ -201,7 +190,7 @@ function Components({
                         );
                     }}
                     onChangeDivider={(value) => {
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, (old) => ({
                                 ...(old as APISeparatorComponent),
                                 divider: value,
@@ -217,13 +206,12 @@ function Components({
             return (
                 <MediaGallery
                     key={component.id}
-                    component={component}
                     onMoveUp={() => handleMove(index, "up")}
                     onMoveDown={() => handleMove(index, "down")}
                     onRemove={() => handleRemove(index)}
                     images={component.items}
                     setImages={(images) => {
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, (old) => ({
                                 ...(old as APIMediaGalleryComponent),
                                 items: images,
@@ -235,14 +223,13 @@ function Components({
         } else if (component.type === ComponentType.Container) {
             return (
                 <Container
-                    component={component}
                     key={component.id}
                     onMoveUp={() => handleMove(index, "up")}
                     onMoveDown={() => handleMove(index, "down")}
                     onRemove={() => handleRemove(index)}
                     components={component.components}
                     setComponents={(childComponents) => {
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, (old) => ({
                                 ...(old as APIContainerComponent),
                                 components: childComponents,
@@ -251,23 +238,24 @@ function Components({
                     }}
                     color={component.accent_color ?? null}
                     setColor={(color) => {
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, (old) => ({
                                 ...(old as APIContainerComponent),
                                 accent_color: color,
                             })),
                         );
                     }}
+                    guild={guild}
+                    messageId={messageId}
                 />
             );
         } else if (component.type === ComponentType.ActionRow) {
             return (
                 <ButtonGroup
                     key={component.id}
-                    component={component}
                     components={component.components as APIButtonComponent[]}
                     setComponents={(components) => {
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, (old) => ({
                                 ...(old as APIActionRowComponent<APIButtonComponent>),
                                 components: components,
@@ -277,19 +265,20 @@ function Components({
                     onMoveUp={() => handleMove(index, "up")}
                     onMoveDown={() => handleMove(index, "down")}
                     onRemove={() => handleRemove(index)}
+                    guild={guild}
+                    messageId={messageId}
                 />
             );
         } else if (component.type === ComponentType.File) {
             return (
                 <File
                     key={component.id}
-                    component={component}
                     onMoveUp={() => handleMove(index, "up")}
                     onMoveDown={() => handleMove(index, "down")}
                     onRemove={() => handleRemove(index)}
                     spoiler={component.spoiler ?? false}
                     onChangeSpoiler={(value) => {
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, (old) => ({
                                 ...(old as APIFileComponent),
                                 spoiler: value,
@@ -298,7 +287,7 @@ function Components({
                     }}
                     file={component}
                     setFile={(file) => {
-                        setComponents((previousComponents) =>
+                        setItems((previousComponents) =>
                             updateAt(previousComponents, index, (old) => ({
                                 ...(old as APIFileComponent),
                                 file: file.file,

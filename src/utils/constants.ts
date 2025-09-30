@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import type { MotionProps } from "motion/react";
 import { randomNumber } from "./functions";
+import { BotActions } from "./types";
 
 export const motionProps: MotionProps = {
     layout: "position",
@@ -58,7 +59,7 @@ export const defaultComponents: APIMessageTopLevelComponent[] = [
                 id: 280096184,
                 type: 10,
                 content:
-                    "# Getting started\n- Install Message Kit in your server.\n- Click **Add Component** at the top of this pane and choose one.\n- Customize the component as you like.\n- Send it! You can send your message via our bot or with webhooks.",
+                    "# Getting started\n- Install Message Kit in your server.\n- Click **Add Item** at the top of this panel and choose one.\n- Customize the component as you like.\n- Send it! You can send your message via our bot or with webhooks.",
             },
         ],
         accent_color: 5727743,
@@ -167,3 +168,9 @@ export const componentDescriptors = [
 ] as const;
 
 export const inspectedStyle = "ring-1 ring-destructive animate-pulse [animation-duration:0.75s]";
+
+export const actionOptions = [
+    { label: "Send to channel", type: BotActions.SendToChannel },
+    { label: "Reply to interaction", type: BotActions.ReplyToInteraction },
+    { label: "Do nothing", type: BotActions.DoNothing },
+];

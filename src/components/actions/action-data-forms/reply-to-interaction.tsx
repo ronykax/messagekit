@@ -1,3 +1,6 @@
+import { MessageSquareIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import HelperText from "@/components/helper-text";
 import RequiredIndicator from "@/components/required-indicator";
 import { Label } from "@/components/ui/label";
@@ -8,9 +11,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { useDataStore } from "@/lib/stores/data";
-import type { BotActionBody, BotActions } from "@/utils/types";
-import { Checkbox } from "../ui/checkbox";
+import { createClient } from "@/lib/supabase/client";
+import type { BotActionBody, BotActions, RowMessage } from "@/utils/types";
+import { Checkbox } from "../../ui/checkbox";
+
+const supabase = createClient();
 
 interface Props {
     data: Extract<BotActionBody, { type: BotActions.ReplyToInteraction }>;
@@ -18,7 +23,21 @@ interface Props {
 }
 
 export default function ReplyToInteractionFormBody({ data, setData }: Props) {
-    const { templates } = useDataStore();
+    const [messages, setMessages] = useState<RowMessage[]>([]);
+
+    useEffect(() => {
+        supabase
+            .from("messages")
+            .select("*")
+            .limit(25)
+            .then(({ data, error }) => {
+                if (error) {
+                    toast.error("Failed to get messages");
+                } else {
+                    setMessages(data);
+                }
+            });
+    }, []);
 
     return (
         <div className="flex flex-col gap-6">
@@ -27,19 +46,17 @@ export default function ReplyToInteractionFormBody({ data, setData }: Props) {
                     Message <RequiredIndicator />
                 </Label>
                 <Select
-                    onValueChange={(templateId) => setData({ ...data, templateId })}
-                    value={data.templateId}
+                    onValueChange={(messageId) => setData({ ...data, messageId })}
+                    value={data.messageId}
                 >
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a message" />
                     </SelectTrigger>
                     <SelectContent>
-                        {templates?.map((template) => (
-                            <SelectItem
-                                key={template.template_id as string}
-                                value={template.template_id as string}
-                            >
-                                {template.name as string}
+                        {messages?.map((message) => (
+                            <SelectItem key={message.id} value={message.id}>
+                                <MessageSquareIcon />
+                                {message.name}
                             </SelectItem>
                         ))}
                     </SelectContent>

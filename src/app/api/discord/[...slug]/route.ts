@@ -1,8 +1,7 @@
-/** biome-ignore-all lint/style/noNonNullAssertion: n */
-
 import {
     type APIInteraction,
     type APIInteractionResponse,
+    type APIMessageTopLevelComponent,
     Client,
     InteractionResponseType,
     InteractionType,
@@ -24,24 +23,7 @@ class MessageKitClient extends Client {
         }
 
         if (interaction.type === InteractionType.MessageComponent) {
-            const supabase = await createClient(true);
-
-            const { data: actionData, error: actionDataError } = await supabase
-                .from("actions")
-                .select("*")
-                .filter("custom_id", "eq", interaction.data.custom_id)
-                .single();
-
-            if (actionDataError) {
-                const response: APIInteractionResponse = {
-                    type: InteractionResponseType.ChannelMessageWithSource,
-                    data: { content: "Failed to fetch action!" },
-                };
-
-                return Response.json(response);
-            }
-
-            const parsed = BotActionSchema.safeParse(actionData.params);
+            const parsed = BotActionSchema.safeParse(JSON.parse(interaction.data.custom_id));
 
             if (!parsed.success) {
                 const response: APIInteractionResponse = {
@@ -56,10 +38,12 @@ class MessageKitClient extends Client {
 
             // REPLY TO INTERACTION
             if (params.type === BotActions.ReplyToInteraction) {
+                const supabase = await createClient({ useServiceRole: true });
+
                 const { data: templateData, error: templateDataError } = await supabase
-                    .from("templates")
-                    .select("*")
-                    .filter("template_id", "eq", params.templateId)
+                    .from("messages")
+                    .select("items")
+                    .filter("id", "eq", params.messageId)
                     .single();
 
                 if (templateDataError) {
@@ -77,7 +61,7 @@ class MessageKitClient extends Client {
                 const response: APIInteractionResponse = {
                     type: InteractionResponseType.ChannelMessageWithSource,
                     data: {
-                        components: templateData.components,
+                        components: templateData.items as unknown as APIMessageTopLevelComponent[],
                         flags:
                             MessageFlags.IsComponentsV2 |
                             (params.ephemeral ? MessageFlags.Ephemeral : 0),
@@ -86,13 +70,17 @@ class MessageKitClient extends Client {
 
                 return Response.json(response);
             } else if (params.type === BotActions.SendToChannel) {
-            }
+            } else if (params.type === BotActions.DoNothing) {
+                const response: APIInteractionResponse = {
+                    type: InteractionResponseType.Pong,
+                };
 
-            const content = `\`\`\`${JSON.stringify(actionData)}\`\`\``;
+                return Response.json(response);
+            }
 
             const response: APIInteractionResponse = {
                 type: InteractionResponseType.ChannelMessageWithSource,
-                data: { content },
+                data: { content: "Something went wrong!" },
             };
 
             return Response.json(response);
@@ -102,17 +90,28 @@ class MessageKitClient extends Client {
     }
 }
 
+function getEnv(name: string) {
+    const result = process.env[name];
+
+    if (!result) {
+        throw new Error(`missing ${result}`);
+    }
+
+    return result;
+}
+
 const client = new MessageKitClient(
     {
-        baseUrl: process.env.BASE_URL!,
-        deploySecret: process.env.DEPLOY_SECRET!,
-        clientId: process.env.DISCORD_CLIENT_ID!,
-        publicKey: process.env.DISCORD_PUBLIC_KEY!,
-        token: process.env.DISCORD_CLIENT_TOKEN!,
+        baseUrl: getEnv("BASE_URL"),
+        deploySecret: getEnv("DEPLOY_SECRET"),
+        clientId: getEnv("DISCORD_CLIENT_ID"),
+        publicKey: getEnv("DISCORD_PUBLIC_KEY"),
+        token: getEnv("DISCORD_CLIENT_TOKEN"),
     },
     {},
 );
 
 const handler = createHandler(client);
+
 export const GET = (req: Request) => handler(req, {});
 export const POST = (req: Request) => handler(req, {});

@@ -3,7 +3,7 @@ import { Inter, Inter_Tight } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { UserProvider } from "./providers/user-provider";
+import { UserProvider } from "../components/user-provider";
 
 const body = Inter({
     variable: "--font-body",

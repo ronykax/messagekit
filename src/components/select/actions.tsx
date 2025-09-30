@@ -1,8 +1,8 @@
-import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import type { RowAction } from "@/utils/types";
 import { Button } from "../ui/button";
 import {
     Command,
@@ -13,50 +13,40 @@ import {
     CommandList,
 } from "../ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Spinner } from "../ui/spinner";
 
 const supabase = createClient();
 
 export default function ActionSelector({
-    actions,
     setAction,
+    action,
+    disabled = false,
+    messageId,
 }: {
-    actions?: Record<string, unknown>[] | null;
-    setAction: (action: Record<string, unknown>) => void;
+    setAction: (action: RowAction) => void;
+    action: string;
+    disabled?: boolean;
+    messageId: string;
 }) {
-    const pathname = usePathname();
-
-    const [ownActions, setOwnActions] = useState<Record<string, unknown>[] | null>(null);
     const [open, setOpen] = useState(false);
-    const [selectedValue, setSelectedValue] = useState("");
+    const [selectedValue, setSelectedValue] = useState(action);
+    const [actions, setActions] = useState<RowAction[]>([]);
 
-    const [loading, setLoading] = useState(true);
-
-    // Fetch actions
     useEffect(() => {
-        if (actions !== undefined) {
-            return setLoading(false);
-        }
-
         if (!open) return;
-        if (ownActions !== null) return; // already fetched
 
         supabase
             .from("actions")
             .select("*")
-            .eq("template", pathname.slice(1))
+            .eq("message_id", messageId)
             .limit(25)
             .then(({ data, error }) => {
                 if (error) {
-                    toast.error("Failed to fetch actions");
+                    toast.error("Failed to get actions");
                 } else {
-                    setOwnActions(data);
-                    setLoading(false);
+                    setActions(data);
                 }
             });
-    }, [actions, pathname, open, ownActions]);
-
-    const currentActions = actions ?? ownActions ?? [];
+    }, [messageId, open]);
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -66,11 +56,17 @@ export default function ActionSelector({
                     role="combobox"
                     aria-expanded={open}
                     className="w-full justify-between"
+                    disabled={disabled}
                 >
-                    {selectedValue
-                        ? (currentActions.find((action) => action.custom_id === selectedValue)
-                              ?.name as string)
-                        : "Select action..."}
+                    {(() => {
+                        if (!selectedValue) return "Select action...";
+
+                        const selectedAction = actions.find(
+                            (action) => JSON.stringify(action.details) === selectedValue,
+                        );
+
+                        return selectedAction?.name || "Select action...";
+                    })()}
                     <ChevronsUpDownIcon className="opacity-50" />
                 </Button>
             </PopoverTrigger>
@@ -78,33 +74,39 @@ export default function ActionSelector({
                 <Command>
                     <CommandInput placeholder="Search action..." />
                     <CommandList>
-                        <CommandEmpty>
-                            {currentActions.length !== 0
-                                ? "No action found"
-                                : loading && <Spinner size="medium" />}
-                        </CommandEmpty>
+                        <CommandEmpty>No actions found</CommandEmpty>
                         <CommandGroup>
-                            {currentActions.map((item) => (
+                            {actions.map((item) => (
                                 <CommandItem
-                                    key={item.custom_id as string}
-                                    value={item.name as string}
+                                    key={`${item.id}`}
                                     onSelect={() => {
-                                        setSelectedValue(item.custom_id as string);
+                                        setSelectedValue(JSON.stringify(item.details));
                                         setAction(item);
                                         setOpen(false);
                                     }}
                                 >
                                     <CheckIcon
                                         className={`${
-                                            selectedValue === item.custom_id
+                                            selectedValue === JSON.stringify(item.details)
                                                 ? "opacity-100"
                                                 : "opacity-0"
                                         }`}
                                     />
-                                    {item.name as string}
+                                    {item.name}
                                 </CommandItem>
                             ))}
                         </CommandGroup>
+                        <div className="flex border-t gap-1 p-1">
+                            <span className="text-xs ml-2 text-muted-foreground my-auto mr-auto">
+                                Page 1
+                            </span>
+                            <Button className="size-7" size="icon" variant="ghost">
+                                <ArrowLeftIcon />
+                            </Button>
+                            <Button className="size-7" size="icon" variant="ghost">
+                                <ArrowRightIcon />
+                            </Button>
+                        </div>
                     </CommandList>
                 </Command>
             </PopoverContent>

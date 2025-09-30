@@ -1,4 +1,4 @@
-import type { APIGuildChannel, GuildChannelType } from "discord-api-types/v10";
+import type { APIGuild, APIGuildChannel, GuildChannelType } from "discord-api-types/v10";
 import { ChannelType } from "discord-api-types/v10";
 import {
     Folder,
@@ -10,7 +10,6 @@ import {
     Volume2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useGuildStore } from "@/lib/stores/guild";
 import {
     Select,
     SelectContent,
@@ -23,18 +22,17 @@ import {
 
 interface Props {
     onChannelChange: (channel: string) => void;
+    guild: APIGuild;
 }
 
-export default function ChannelSelector({ onChannelChange }: Props) {
+export default function ChannelSelector({ onChannelChange, guild }: Props) {
     const [channels, setChannels] = useState<APIGuildChannel<GuildChannelType>[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const { guild } = useGuildStore();
 
     useEffect(() => {
-        if (!guild) return;
         setIsLoading(true);
 
-        fetch(`/api/discord/guilds/${guild}/channels`)
+        fetch(`/api/discord/guilds/${guild.id}/channels`)
             .then((res) => res.json())
             .then((data) => {
                 setChannels(data);

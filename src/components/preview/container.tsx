@@ -12,17 +12,14 @@ export default function PreviewContainer({
     component: APIContainerComponent;
 }) {
     return (
-        <div className="flex border-[#44454c] border rounded-[8px] w-fit overflow-hidden max-w-[598px]">
+        <div className="flex border-white/7.5 border rounded-md w-fit overflow-hidden max-w-[598px]">
             {comp.accent_color && (
                 <div
-                    className="min-w-[4px] max-w-[4px]"
+                    className="min-w-1 max-w-1"
                     style={{ backgroundColor: numberToHex(comp.accent_color) }}
                 />
             )}
-            <div
-                className="flex flex-col gap-[8px] bg-[#393a41] text-[14px]"
-                style={{ padding: comp.accent_color ? "16px 16px 16px 12px" : "16px" }}
-            >
+            <div className="flex flex-col gap-2 bg-white/2.5 text-sm" style={{ padding: "16px" }}>
                 {comp.components.map((component) => {
                     if (component.type === ComponentType.TextDisplay) {
                         return (

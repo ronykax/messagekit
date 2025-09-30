@@ -2,9 +2,8 @@ import {
     type APIButtonComponent,
     type APIButtonComponentWithURL,
     type APIEmoji,
+    type APIGuild,
     type APISectionAccessoryComponent,
-    type APISectionComponent,
-    type APITextDisplayComponent,
     type APIThumbnailComponent,
     ButtonStyle,
     ComponentType,
@@ -21,8 +20,7 @@ import { useMemo, useState } from "react";
 import { toComponentEmoji } from "@/utils/functions";
 import EmojiPicker from "../emoji-picker";
 import HelperText from "../helper-text";
-import NewBuilder from "../new-builder";
-import ActionSelector from "../selectors/actions";
+import ActionSelector from "../select/actions";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -39,6 +37,7 @@ import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Textarea } from "../ui/textarea";
+import Wrapper from "./wrapper";
 
 export default function TextDisplay({
     content,
@@ -49,7 +48,8 @@ export default function TextDisplay({
     accessory,
     setAccessory,
     removeAccessory,
-    component,
+    guild,
+    messageId,
 }: {
     content: string;
     onContentChange: (content: string) => void;
@@ -59,9 +59,12 @@ export default function TextDisplay({
     accessory?: APISectionAccessoryComponent;
     setAccessory?: (accessory: APISectionAccessoryComponent) => void;
     removeAccessory?: () => void;
-    component: APITextDisplayComponent | APISectionComponent;
+    guild: APIGuild;
+    messageId: string;
 }) {
-    const [tab, setTab] = useState<"thumbnail" | "button">("thumbnail");
+    const [tab, setTab] = useState<"thumbnail" | "button">(
+        accessory?.type === ComponentType.Button ? "button" : "thumbnail",
+    );
 
     // image accesory
     const [imageUrl, setImageUrl] = useState("");
@@ -103,6 +106,18 @@ export default function TextDisplay({
 
         return false;
     }, [imageUrl, buttonLabel, buttonStyle, buttonUrl, buttonActionId, tab]);
+
+    function resetAllStates() {
+        setImageUrl("");
+        setImageAlt("");
+
+        setButtonLabel("");
+        setButtonEmoji(null);
+        setButtonStyle("primary");
+
+        setButtonUrl("");
+        setButtonActionId("");
+    }
 
     function isThumbnailComponent(
         a: APISectionAccessoryComponent | undefined,
@@ -162,8 +177,7 @@ export default function TextDisplay({
     const buttonUrlValue = isButtonWithURL(accessory) ? accessory.url : buttonUrl;
 
     return (
-        <NewBuilder
-            tag={component.id ?? null}
+        <Wrapper
             name="Text"
             icon={<TextIcon />}
             onMoveUp={onMoveUp}
@@ -255,6 +269,7 @@ export default function TextDisplay({
                                                 }
                                             }}
                                             emoji={buttonEmoji}
+                                            guild={guild}
                                         />
                                     </div>
                                 </div>
@@ -307,8 +322,11 @@ export default function TextDisplay({
                                         </Label>
                                         <ActionSelector
                                             setAction={(action) =>
-                                                setButtonActionId(action.custom_id as string)
+                                                setButtonActionId(JSON.stringify(action.details))
                                             }
+                                            action={buttonActionId}
+                                            disabled={messageId === "new"}
+                                            messageId={messageId}
                                         />
                                         <HelperText text="Select an action that this button should trigger" />
                                     </div>
@@ -324,6 +342,7 @@ export default function TextDisplay({
                                         onClick={() =>
                                             setTimeout(() => {
                                                 removeAccessory?.();
+                                                resetAllStates();
                                             }, 50)
                                         }
                                     >
@@ -382,6 +401,6 @@ export default function TextDisplay({
             {/* <div className="rounded-md border mt-4 text-sm">
                 show gap
             </div> */}
-        </NewBuilder>
+        </Wrapper>
     );
 }

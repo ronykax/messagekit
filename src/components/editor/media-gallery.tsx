@@ -1,4 +1,4 @@
-import type { APIMediaGalleryComponent, APIMediaGalleryItem } from "discord-api-types/v10";
+import type { APIMediaGalleryItem } from "discord-api-types/v10";
 import {
     EyeClosedIcon,
     EyeIcon,
@@ -12,11 +12,10 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { useFiles } from "@/lib/stores/files";
 import { cn } from "@/lib/utils";
 import { motionProps } from "@/utils/constants";
 import { sanitizeFileName, updateAt } from "@/utils/functions";
-import NewBuilder from "../new-builder";
+import { useFiles } from "@/utils/stores/files";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -31,6 +30,7 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import Wrapper from "./wrapper";
 
 export default function MediaGallery({
     onMoveUp,
@@ -38,14 +38,12 @@ export default function MediaGallery({
     onRemove,
     images,
     setImages,
-    component,
 }: {
     onMoveUp: () => void;
     onMoveDown: () => void;
     onRemove: () => void;
     images: APIMediaGalleryItem[];
     setImages: (images: APIMediaGalleryItem[]) => void;
-    component: APIMediaGalleryComponent;
 }) {
     const isAtLimit = images.length >= 10;
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -125,9 +123,8 @@ export default function MediaGallery({
     };
 
     return (
-        <NewBuilder
+        <Wrapper
             name="Media"
-            tag={component.id ?? null}
             icon={<ImageIcon />}
             onMoveUp={onMoveUp}
             onMoveDown={onMoveDown}
@@ -369,6 +366,6 @@ export default function MediaGallery({
                     Upload images to the media gallery
                 </div>
             )}
-        </NewBuilder>
+        </Wrapper>
     );
 }

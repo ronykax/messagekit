@@ -1,11 +1,24 @@
 "use client";
 
-import { useEffect } from "react";
+import { ExternalLinkIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useUserStore } from "@/utils/stores/user";
 
 export default function Page() {
-    useEffect(() => {
-        window.location.href = "/new";
-    }, []);
+    const { user } = useUserStore();
 
-    return null;
+    if (user) {
+        window.location.href = "/select-guild";
+    }
+
+    return (
+        <div className="flex items-center justify-center h-screen">
+            <Button variant={"link"} className="text-white" asChild>
+                <a href={`/auth/login?redirect=${encodeURIComponent("/select-guild")}`}>
+                    Login to use Message Kit
+                    <ExternalLinkIcon />
+                </a>
+            </Button>
+        </div>
+    );
 }

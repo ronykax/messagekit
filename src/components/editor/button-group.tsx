@@ -1,8 +1,7 @@
 import {
-    type APIActionRowComponent,
     type APIButtonComponent,
-    type APIComponentInMessageActionRow,
     type APIEmoji,
+    type APIGuild,
     ButtonStyle,
     ComponentType,
 } from "discord-api-types/v10";
@@ -20,9 +19,17 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useState } from "react";
 import { motionProps } from "@/utils/constants";
-import { moveItem, randomNumber, removeAt, toComponentEmoji } from "@/utils/functions";
+import {
+    getActionTypeLabel,
+    moveItem,
+    randomNumber,
+    removeAt,
+    toComponentEmoji,
+} from "@/utils/functions";
+import type { BotActionBody } from "@/utils/types";
 import EmojiPicker from "../emoji-picker";
-import NewBuilder from "../new-builder";
+import RequiredIndicator from "../required-indicator";
+import ActionSelector from "../select/actions";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -37,6 +44,7 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import Wrapper from "./wrapper";
 
 export default function ButtonGroup({
     onMoveUp,
@@ -44,14 +52,16 @@ export default function ButtonGroup({
     onRemove,
     components,
     setComponents,
-    component,
+    guild,
+    messageId,
 }: {
     onMoveUp: () => void;
     onMoveDown: () => void;
     onRemove: () => void;
     components: APIButtonComponent[];
     setComponents: (components: APIButtonComponent[]) => void;
-    component: APIActionRowComponent<APIComponentInMessageActionRow>;
+    guild: APIGuild;
+    messageId: string;
 }) {
     const [buttonLabel, setButtonLabel] = useState("");
     const [buttonEmoji, setButtonEmoji] = useState<string | APIEmoji | null>(null);
@@ -62,6 +72,8 @@ export default function ButtonGroup({
     const [buttonActionId, setButtonActionId] = useState("");
 
     const isValid = useMemo(() => {
+        if (!buttonLabel.trim()) return false;
+
         if (buttonStyle === "link") {
             try {
                 new URL(buttonUrl);
@@ -72,12 +84,11 @@ export default function ButtonGroup({
         } else {
             return buttonActionId.trim().length > 0;
         }
-    }, [buttonStyle, buttonUrl, buttonActionId]);
+    }, [buttonLabel, buttonStyle, buttonUrl, buttonActionId]);
 
     return (
-        <NewBuilder
+        <Wrapper
             name="Buttons"
-            tag={component.id ?? null}
             icon={<MousePointerClickIcon />}
             onMoveUp={onMoveUp}
             onMoveDown={onMoveDown}
@@ -127,6 +138,7 @@ export default function ButtonGroup({
                                             }
                                         }}
                                         emoji={buttonEmoji}
+                                        guild={guild}
                                     />
                                 </div>
                             </div>
@@ -173,14 +185,16 @@ export default function ButtonGroup({
                             ) : (
                                 <div className="flex flex-col gap-2">
                                     <Label htmlFor="btn-action-id">
-                                        Action ID
-                                        <span className="text-destructive">*</span>
+                                        Action
+                                        <RequiredIndicator />
                                     </Label>
-                                    <Input
-                                        placeholder="Enter your action ID"
-                                        value={buttonActionId}
-                                        id="btn-action-id"
-                                        onChange={(e) => setButtonActionId(e.target.value)}
+                                    <ActionSelector
+                                        setAction={(action) =>
+                                            setButtonActionId(JSON.stringify(action.details))
+                                        }
+                                        action={buttonActionId}
+                                        disabled={messageId === "new"}
+                                        messageId={messageId}
                                     />
                                 </div>
                             )}
@@ -279,7 +293,13 @@ export default function ButtonGroup({
                                                         </a>
                                                     ) : (
                                                         <span className="text-muted-foreground">
-                                                            {component.custom_id}
+                                                            {getActionTypeLabel(
+                                                                (
+                                                                    JSON.parse(
+                                                                        component.custom_id,
+                                                                    ) as BotActionBody
+                                                                ).type,
+                                                            )}
                                                         </span>
                                                     )}
                                                 </div>
@@ -324,6 +344,6 @@ export default function ButtonGroup({
                         })}
                 </AnimatePresence>
             </div>
-        </NewBuilder>
+        </Wrapper>
     );
 }

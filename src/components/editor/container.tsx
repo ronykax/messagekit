@@ -3,8 +3,8 @@ import {
     type APIActionRowComponent,
     type APIButtonComponent,
     type APIComponentInContainer,
-    type APIContainerComponent,
     type APIFileComponent,
+    type APIGuild,
     type APIMediaGalleryComponent,
     type APISeparatorComponent,
     ComponentType,
@@ -16,7 +16,6 @@ import { Fragment, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import { componentDescriptors } from "@/utils/constants";
 import { append, hexToNumber, moveItem, removeAt, updateAt } from "@/utils/functions";
-import NewBuilder from "../new-builder";
 import { Button } from "../ui/button";
 import {
     DropdownMenu,
@@ -33,6 +32,7 @@ import File from "./file";
 import MediaGallery from "./media-gallery";
 import Separator from "./separator";
 import TextDisplay from "./text-display";
+import Wrapper from "./wrapper";
 
 export default function Container({
     onMoveUp,
@@ -42,7 +42,8 @@ export default function Container({
     setComponents,
     setColor,
     color,
-    component,
+    guild,
+    messageId,
 }: {
     onMoveUp: () => void;
     onMoveDown: () => void;
@@ -51,7 +52,8 @@ export default function Container({
     setComponents: (components: APIComponentInContainer[]) => void;
     color: number | null;
     setColor: (color: number | null) => void;
-    component: APIContainerComponent;
+    guild: APIGuild;
+    messageId: string;
 }) {
     const [colorToSet, setColorToSet] = useState("#000000");
 
@@ -78,7 +80,7 @@ export default function Container({
         }));
 
     return (
-        <NewBuilder
+        <Wrapper
             style={
                 color
                     ? {
@@ -89,7 +91,6 @@ export default function Container({
             }
             icon={<BoxIcon />}
             name="Container"
-            tag={component.id ?? null}
             onMoveUp={onMoveUp}
             onMoveDown={onMoveDown}
             onRemove={onRemove}
@@ -103,7 +104,7 @@ export default function Container({
                                 className="h-7 text-xs font-medium"
                             >
                                 <PlusIcon />
-                                Add Component
+                                Add Item
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
@@ -129,7 +130,7 @@ export default function Container({
                                         onClick={component.onClick}
                                         disabled={component.disabled}
                                     >
-                                        <component.icon />
+                                        <component.icon className="text-muted-foreground" />
                                         {component.name}
                                     </DropdownMenuItem>
                                 </Fragment>
@@ -189,7 +190,6 @@ export default function Container({
                             return (
                                 <TextDisplay
                                     key={component.id}
-                                    component={component}
                                     content={component.content}
                                     onContentChange={(content) => {
                                         setComponents(
@@ -217,13 +217,14 @@ export default function Container({
                                     onMoveUp={() => handleMove(index, "up")}
                                     onMoveDown={() => handleMove(index, "down")}
                                     onRemove={() => handleRemove(index)}
+                                    guild={guild}
+                                    messageId={messageId}
                                 />
                             );
                         } else if (component.type === ComponentType.Section) {
                             return (
                                 <TextDisplay
                                     key={component.id}
-                                    component={component}
                                     content={component.components[0].content}
                                     onContentChange={(content) => {
                                         setComponents(
@@ -259,13 +260,14 @@ export default function Container({
                                     onMoveUp={() => handleMove(index, "up")}
                                     onMoveDown={() => handleMove(index, "down")}
                                     onRemove={() => handleRemove(index)}
+                                    guild={guild}
+                                    messageId={messageId}
                                 />
                             );
                         } else if (component.type === ComponentType.Separator) {
                             return (
                                 <Separator
                                     key={component.id}
-                                    component={component}
                                     spacing={component.spacing ?? SeparatorSpacingSize.Small}
                                     divider={component.divider ?? true}
                                     onChangeSpacing={(size) => {
@@ -293,7 +295,6 @@ export default function Container({
                             return (
                                 <MediaGallery
                                     key={component.id}
-                                    component={component}
                                     onMoveUp={() => handleMove(index, "up")}
                                     onMoveDown={() => handleMove(index, "down")}
                                     onRemove={() => handleRemove(index)}
@@ -312,7 +313,6 @@ export default function Container({
                             return (
                                 <ButtonGroup
                                     key={component.id}
-                                    component={component}
                                     onMoveUp={() => handleMove(index, "up")}
                                     onMoveDown={() => handleMove(index, "down")}
                                     onRemove={() => handleRemove(index)}
@@ -325,13 +325,14 @@ export default function Container({
                                             })),
                                         )
                                     }
+                                    guild={guild}
+                                    messageId={messageId}
                                 />
                             );
                         } else if (component.type === ComponentType.File) {
                             return (
                                 <File
                                     key={component.id}
-                                    component={component}
                                     onMoveUp={() => handleMove(index, "up")}
                                     onMoveDown={() => handleMove(index, "down")}
                                     onRemove={() => handleRemove(index)}
@@ -361,6 +362,6 @@ export default function Container({
                     })}
                 </AnimatePresence>
             </div>
-        </NewBuilder>
+        </Wrapper>
     );
 }
