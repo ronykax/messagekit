@@ -1,7 +1,7 @@
 import type { APIFileComponent } from "discord-api-types/v10";
 import { FileIcon } from "lucide-react";
-import { useFiles } from "@/lib/stores/files";
 import { sanitizeFileName } from "@/utils/functions";
+import { useFiles } from "@/utils/stores/files";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";

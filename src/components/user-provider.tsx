@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useUserStore } from "@/lib/stores/user";
 import { createClient } from "@/lib/supabase/client";
+import { useUserStore } from "@/utils/stores/user";
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const setUser = useUserStore((s) => s.setUser);

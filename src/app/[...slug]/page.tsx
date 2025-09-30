@@ -19,13 +19,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
         data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) redirect("/auth/login?redirect=/select-guild");
+    if (!user) redirect(`/auth/login?redirect=${encodeURIComponent("/select-guild")}`);
 
     const botToken = process.env.DISCORD_CLIENT_TOKEN;
     if (!botToken) throw new Error("missing DISCORD_CLIENT_TOKEN!");
 
     const userId: string = user.user_metadata.provider_id;
-    if (!userId) redirect("/auth/login?redirect=/select-guild");
+    if (!userId) redirect(`/auth/login?redirect=${encodeURIComponent("/select-guild")}`);
 
     const guild = await verifyUserPermissions(botToken, guildId, userId);
 

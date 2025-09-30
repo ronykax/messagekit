@@ -322,7 +322,7 @@ export default function TextDisplay({
                                         </Label>
                                         <ActionSelector
                                             setAction={(action) =>
-                                                setButtonActionId(JSON.stringify(action.params))
+                                                setButtonActionId(JSON.stringify(action.details))
                                             }
                                             action={buttonActionId}
                                             disabled={messageId === "new"}

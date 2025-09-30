@@ -7,10 +7,12 @@ import {
 } from "discord-api-types/v10";
 import {
     DownloadIcon,
+    EditIcon,
+    EllipsisIcon,
     EraserIcon,
     ExternalLinkIcon,
-    MessageSquareIcon,
     PlusIcon,
+    Trash2Icon,
     UploadIcon,
 } from "lucide-react";
 import Image from "next/image";
@@ -18,10 +20,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type Dispatch, Fragment, type SetStateAction, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useUserStore } from "@/lib/stores/user";
 import { createClient } from "@/lib/supabase/client";
 import { componentDescriptors, defaultComponents } from "@/utils/constants";
 import { append } from "@/utils/functions";
+import { useUserStore } from "@/utils/stores/user";
 import type { RowMessage } from "@/utils/types";
 import ActionsButton from "../actions/button";
 import { Button } from "../ui/button";
@@ -52,7 +54,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "../ui/select";
-import { Separator } from "../ui/separator";
 import { Skeleton } from "../ui/skeleton";
 
 const supabase = createClient();
@@ -80,6 +81,7 @@ export default function EditorNavbar({
         supabase
             .from("messages")
             .select("*")
+            .eq("guild_id", guild.id)
             .limit(25)
             .then(({ data, error }) => {
                 if (error) {
@@ -88,7 +90,7 @@ export default function EditorNavbar({
                     setMessages(data);
                 }
             });
-    }, []);
+    }, [guild.id]);
 
     const componentsList = componentDescriptors.map((descriptor) => ({
         name: descriptor.name,
@@ -133,32 +135,43 @@ export default function EditorNavbar({
                         <DropdownMenuTrigger asChild>
                             <button
                                 type="button"
-                                className="size-9 border border-border/50 rounded-md cursor-pointer overflow-hidden"
+                                className="size-9 border rounded-md cursor-pointer overflow-hidden"
                                 title={guild.name}
                             >
-                                <Image
-                                    src={
-                                        guild.icon
-                                            ? RouteBases.cdn +
-                                              CDNRoutes.guildIcon(
-                                                  guild.id,
-                                                  guild.icon,
-                                                  guild.icon.startsWith("a_")
-                                                      ? ImageFormat.GIF
-                                                      : ImageFormat.WebP,
-                                              )
-                                            : "/logo.png"
-                                    }
-                                    className="size-full"
-                                    alt="Logo"
-                                    width={32}
-                                    height={32}
-                                />
+                                {guild.icon ? (
+                                    <Image
+                                        src={
+                                            RouteBases.cdn +
+                                            CDNRoutes.guildIcon(
+                                                guild.id,
+                                                guild.icon,
+                                                guild.icon.startsWith("a_")
+                                                    ? ImageFormat.GIF
+                                                    : ImageFormat.WebP,
+                                            )
+                                        }
+                                        className="size-full"
+                                        alt="Logo"
+                                        width={32}
+                                        height={32}
+                                        unoptimized
+                                    />
+                                ) : (
+                                    <div className="size-full bg-primary text-sm font-medium flex items-center justify-center">
+                                        {guild.name
+                                            .trim()
+                                            .split(/\s+/)
+                                            .slice(0, 2)
+                                            .map((w) => w[0].toUpperCase())
+                                            .join("")}
+                                    </div>
+                                )}
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent side="right">
-                            <DropdownMenuLabel className="text-xs text-muted-foreground">
-                                {guild.name}
+                            <DropdownMenuLabel className="text-xs text-muted-foreground flex justify-between">
+                                <span className="truncate w-[100px]">{guild.name}</span>
+                                <span>{guild.approximate_member_count} members</span>
                             </DropdownMenuLabel>
                             <DropdownMenuItem asChild>
                                 <a href={"/select-guild"} className="cursor-pointer">
@@ -170,9 +183,9 @@ export default function EditorNavbar({
                     </DropdownMenu>
 
                     {/* <div className="flex flex-col gap-1.5">
-                            <span className="font-display font-medium leading-none text-nowrap">{guild.name}</span>
-                            <span className="text-muted-foreground leading-none text-xs">{guild.approximate_member_count} members</span>
-                        </div> */}
+                        <span className="font-display font-medium leading-none text-nowrap">{guild.name}</span>
+                        <span className="text-muted-foreground leading-none text-xs">{guild.approximate_member_count} members</span>
+                    </div> */}
                 </div>
 
                 {user === undefined && messages === null ? (
@@ -182,23 +195,13 @@ export default function EditorNavbar({
                         value={
                             messageId === "new" ||
                             !messages.some((message) => message.id === messageId)
-                                ? undefined
+                                ? ""
                                 : messageId
                         }
                         onValueChange={(value) => router.push(`/${guild.id}/${value}`)}
                     >
                         <SelectTrigger className="w-[200px]">
-                            <SelectValue
-                                placeholder={
-                                    <div className="flex gap-2 items-center">
-                                        <MessageSquareIcon />
-                                        <span>Select a message</span>
-                                    </div>
-                                }
-                            >
-                                <MessageSquareIcon />
-                                {messages.find((message) => message.id === messageId)?.name}
-                            </SelectValue>
+                            <SelectValue placeholder="Select a message" />
                         </SelectTrigger>
 
                         <SelectContent>
@@ -253,41 +256,33 @@ export default function EditorNavbar({
                         </SelectContent>
                     </Select>
                 )}
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant={"ghost"}>
+                            <EllipsisIcon />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem disabled>
+                            <EditIcon />
+                            Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem variant="destructive">
+                            <Trash2Icon />
+                            Delete
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             <div className="flex gap-2">
-                {/* UNDO/REDO BUTTONS */}
-                <div className="inline-flex w-fit -space-x-px rounded-md shadow-xs rtl:space-x-reverse">
-                    <Button
-                        variant="outline"
-                        className="rounded-none rounded-l-md shadow-none focus-visible:z-10"
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <DownloadIcon />
-                        Import
-                        <input
-                            className="sr-only"
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleImport}
-                        />
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="rounded-none rounded-r-md shadow-none focus-visible:z-10"
-                        onClick={handleExport}
-                    >
-                        <UploadIcon />
-                        Export
-                    </Button>
-                </div>
-
                 {/* CLEAR COMPONENS BUTTON */}
                 <Dialog>
                     <DialogTrigger asChild>
                         <Button variant="ghost">
                             <EraserIcon />
-                            Clear
+                            Clear All
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
@@ -313,7 +308,31 @@ export default function EditorNavbar({
                     </DialogContent>
                 </Dialog>
 
-                <Separator orientation="vertical" />
+                {/* UNDO/REDO BUTTONS */}
+                <div className="inline-flex w-fit -space-x-px rounded-md shadow-xs rtl:space-x-reverse">
+                    <Button
+                        variant="outline"
+                        className="rounded-none rounded-l-md shadow-none focus-visible:z-10"
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        <DownloadIcon />
+                        Import
+                        <input
+                            className="sr-only"
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleImport}
+                        />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="rounded-none rounded-r-md shadow-none focus-visible:z-10"
+                        onClick={handleExport}
+                    >
+                        <UploadIcon />
+                        Export
+                    </Button>
+                </div>
 
                 {/* ACTIONS BUTTON */}
                 <ActionsButton messageId={messageId} guild={guild} />

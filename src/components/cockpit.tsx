@@ -8,8 +8,8 @@ import EditorPanel from "@/components/panels/editor";
 import PreviewPanel from "@/components/panels/preview";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useConfettiStore } from "@/lib/stores/confetti";
 import { cn } from "@/lib/utils";
+import { useConfettiStore } from "@/utils/stores/confetti";
 
 const LEFT = 60;
 

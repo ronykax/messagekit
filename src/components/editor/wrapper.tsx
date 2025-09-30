@@ -1,9 +1,9 @@
 import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, TrashIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { type PropsWithChildren, type ReactNode, useEffect, useState } from "react";
-import { useInspectingStore } from "@/lib/stores/inspecting";
 import { cn } from "@/lib/utils";
 import { motionProps } from "@/utils/constants";
+import { useInspectingStore } from "@/utils/stores/inspecting";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 

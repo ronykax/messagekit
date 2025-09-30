@@ -16,7 +16,7 @@ export default function ActionsButton({
     return (
         <>
             <Button
-                variant="ghost"
+                variant="outline"
                 disabled={messageId === "new"}
                 onClick={() => setSheetOpen(true)}
             >

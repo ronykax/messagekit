@@ -18,12 +18,12 @@ import {
 import { nanoid } from "nanoid";
 import { type Dispatch, type SetStateAction, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useConfettiStore } from "@/lib/stores/confetti";
-import { useFiles } from "@/lib/stores/files";
-import { useUserStore } from "@/lib/stores/user";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { Json } from "@/utils/database.types";
+import { useConfettiStore } from "@/utils/stores/confetti";
+import { useFiles } from "@/utils/stores/files";
+import { useUserStore } from "@/utils/stores/user";
 import type { SendOptions } from "@/utils/types";
 import HelperText from "../helper-text";
 import ChannelSelector from "../select/channels";
@@ -73,9 +73,10 @@ export default function PreviewNavbar({
 
         const { error } = await supabase.from("messages").upsert({
             id: messageId,
-            items: items as unknown as Json,
             updated_at: new Date().toISOString(),
-            uid: user.id,
+            items: items as unknown as Json,
+            guild_id: guild.id,
+            user_id: user.id,
         });
 
         if (error) {
@@ -91,11 +92,12 @@ export default function PreviewNavbar({
 
         const { error } = await supabase.from("messages").insert({
             id: randomTemplateId,
+            name: newTemplateName,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            uid: user.id,
             items: items as unknown as Json,
-            name: newTemplateName,
+            guild_id: guild.id,
+            user_id: user.id,
         });
 
         if (error) {

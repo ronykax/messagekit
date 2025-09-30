@@ -10,8 +10,8 @@ import { ArrowRightIcon, LoaderIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useUserStore } from "@/lib/stores/user";
 import { cn } from "@/lib/utils";
+import { useUserStore } from "@/utils/stores/user";
 
 export default function Page() {
     const { user } = useUserStore();
@@ -23,7 +23,7 @@ export default function Page() {
         fetch("api/discord/guilds")
             .then((res) => {
                 if (res.status === 401) {
-                    window.location.href = "/auth/login?prompt=none&redirect=/select-guild";
+                    window.location.href = `/auth/login?prompt=none&redirect=${encodeURIComponent("/select-guild")}`;
                     return null;
                 }
                 return res.json();
@@ -58,6 +58,11 @@ export default function Page() {
                 </div>
             ) : (
                 <div className="flex flex-col mt-6 rounded-md border overflow-hidden">
+                    {guilds.length === 0 && (
+                        <div className="text-sm flex justify-center text-muted-foreground items-center px-4 py-8">
+                            No guilds found!
+                        </div>
+                    )}
                     {guilds.map((guild, index) => {
                         return (
                             <Link

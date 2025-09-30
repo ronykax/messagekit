@@ -43,22 +43,23 @@ export type BotActionBody = z.infer<typeof BotActionSchema>;
 export type Guild = RESTAPIPartialCurrentUserGuild;
 
 export type RowMessage = {
-    items: Json;
     created_at: string;
-    name: string | null;
+    guild_id: string;
     id: string;
-    uid: string;
+    items: Json;
+    name: string | null;
     updated_at: string;
+    user_id: string;
 };
 
 export type RowAction = {
     created_at: string;
+    details: Json;
     id: number;
-    name: string | null;
-    params: Json;
-    template: string;
-    uid: string;
+    message_id: string;
+    name: string;
     updated_at: string;
+    user_id: string;
 };
 
 export type MarkdownNode =

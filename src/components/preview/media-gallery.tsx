@@ -1,8 +1,8 @@
 import type { APIMediaGalleryComponent } from "discord-api-types/v10";
 import { memo, useEffect, useState } from "react";
-import { useFiles } from "@/lib/stores/files";
 import { cn } from "@/lib/utils";
 import { sanitizeFileName } from "@/utils/functions";
+import { useFiles } from "@/utils/stores/files";
 
 type PreviewMediaTileProps = {
     mediaUrl: string;

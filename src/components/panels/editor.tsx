@@ -15,9 +15,9 @@ import {
 import { AnimatePresence } from "motion/react";
 import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { useUserStore } from "@/lib/stores/user";
 import { createClient } from "@/lib/supabase/client";
 import { moveItem, randomNumber, removeAt, updateAt } from "@/utils/functions";
+import { useUserStore } from "@/utils/stores/user";
 import ButtonGroup from "../editor/button-group";
 import Container from "../editor/container";
 import File from "../editor/file";

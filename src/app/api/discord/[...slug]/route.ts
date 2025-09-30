@@ -38,7 +38,7 @@ class MessageKitClient extends Client {
 
             // REPLY TO INTERACTION
             if (params.type === BotActions.ReplyToInteraction) {
-                const supabase = await createClient(true);
+                const supabase = await createClient({ useServiceRole: true });
 
                 const { data: templateData, error: templateDataError } = await supabase
                     .from("messages")

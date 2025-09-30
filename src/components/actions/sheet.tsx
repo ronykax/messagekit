@@ -9,10 +9,10 @@ import {
 } from "lucide-react";
 import { type Dispatch, type SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useUserStore } from "@/lib/stores/user";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { getActionTypeLabel } from "@/utils/functions";
+import { useUserStore } from "@/utils/stores/user";
 import { type BotActionBody, BotActionSchema, BotActions, type RowAction } from "@/utils/types";
 import HelperText from "../helper-text";
 import RequiredIndicator from "../required-indicator";
@@ -82,7 +82,7 @@ export default function ActionsSheet({ open, setOpen, messageId, guild }: Props)
         supabase
             .from("actions")
             .select("*")
-            .filter("template", "eq", messageId)
+            .filter("message_id", "eq", messageId)
             .limit(25)
             .then(({ data, error }) => {
                 if (error) {
@@ -125,12 +125,12 @@ export default function ActionsSheet({ open, setOpen, messageId, guild }: Props)
         supabase
             .from("actions")
             .insert({
+                name: newActionName,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
-                uid: user.id,
-                params: parsed.data,
-                template: messageId,
-                name: newActionName,
+                details: parsed.data,
+                message_id: messageId,
+                user_id: user.id,
             })
             .select()
             .then(({ data, error }) => {
@@ -272,14 +272,14 @@ export default function ActionsSheet({ open, setOpen, messageId, guild }: Props)
                                         "flex p-4 text-sm justify-between hover:bg-accent/30 duration-100",
                                         actions && index !== actions.length - 1 && "border-b",
                                     )}
-                                    key={JSON.stringify(action.params)}
+                                    key={JSON.stringify(action.details)}
                                 >
                                     <div className="flex flex-col gap-2">
                                         <span className="font-medium">{action.name as string}</span>
                                         <Badge variant={"secondary"}>
                                             <PickaxeIcon />
                                             {getActionTypeLabel(
-                                                JSON.parse(JSON.stringify(action.params))
+                                                JSON.parse(JSON.stringify(action.details))
                                                     .type as BotActions,
                                             )}
                                         </Badge>

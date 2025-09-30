@@ -12,10 +12,10 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { useFiles } from "@/lib/stores/files";
 import { cn } from "@/lib/utils";
 import { motionProps } from "@/utils/constants";
 import { sanitizeFileName, updateAt } from "@/utils/functions";
+import { useFiles } from "@/utils/stores/files";
 import { Button } from "../ui/button";
 import {
     Dialog,

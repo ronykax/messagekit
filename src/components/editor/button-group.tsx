@@ -190,7 +190,7 @@ export default function ButtonGroup({
                                     </Label>
                                     <ActionSelector
                                         setAction={(action) =>
-                                            setButtonActionId(JSON.stringify(action.params))
+                                            setButtonActionId(JSON.stringify(action.details))
                                         }
                                         action={buttonActionId}
                                         disabled={messageId === "new"}

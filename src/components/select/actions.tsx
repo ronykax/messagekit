@@ -37,7 +37,7 @@ export default function ActionSelector({
         supabase
             .from("actions")
             .select("*")
-            .eq("template", messageId)
+            .eq("message_id", messageId)
             .limit(25)
             .then(({ data, error }) => {
                 if (error) {
@@ -62,7 +62,7 @@ export default function ActionSelector({
                         if (!selectedValue) return "Select action...";
 
                         const selectedAction = actions.find(
-                            (action) => JSON.stringify(action.params) === selectedValue,
+                            (action) => JSON.stringify(action.details) === selectedValue,
                         );
 
                         return selectedAction?.name || "Select action...";
@@ -80,14 +80,14 @@ export default function ActionSelector({
                                 <CommandItem
                                     key={`${item.id}`}
                                     onSelect={() => {
-                                        setSelectedValue(JSON.stringify(item.params));
+                                        setSelectedValue(JSON.stringify(item.details));
                                         setAction(item);
                                         setOpen(false);
                                     }}
                                 >
                                     <CheckIcon
                                         className={`${
-                                            selectedValue === JSON.stringify(item.params)
+                                            selectedValue === JSON.stringify(item.details)
                                                 ? "opacity-100"
                                                 : "opacity-0"
                                         }`}
