@@ -6,6 +6,7 @@ import {
     RouteBases,
 } from "discord-api-types/v10";
 import {
+    ChevronRightIcon,
     DownloadIcon,
     EditIcon,
     EllipsisIcon,
@@ -187,6 +188,8 @@ export default function EditorNavbar({
                         <span className="text-muted-foreground leading-none text-xs">{guild.approximate_member_count} members</span>
                     </div> */}
                 </div>
+
+                <ChevronRightIcon className="size-4 opacity-75" />
 
                 {user === undefined && messages === null ? (
                     <Skeleton className="w-[200px] h-full" />

@@ -10,6 +10,8 @@ import { ArrowRightIcon, LoaderIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import ExternalLinkIcon from "@/components/preview/icons/external-link";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useUserStore } from "@/utils/stores/user";
 
@@ -20,16 +22,12 @@ export default function Page() {
     const [redirectingToGuild, setRedirectingToGuild] = useState("");
 
     useEffect(() => {
+        if (!user) return;
+
         fetch("api/discord/guilds")
-            .then((res) => {
-                if (res.status === 401) {
-                    window.location.href = `/auth/login?prompt=none&redirect=${encodeURIComponent("/select-guild")}`;
-                    return null;
-                }
-                return res.json();
-            })
+            .then((res) => res.json())
             .then((data) => {
-                if (!data) return; // Redirecting
+                if (!data) return;
 
                 if (data.guilds) {
                     setGuilds(data.guilds);
@@ -39,7 +37,7 @@ export default function Page() {
 
                 setLoading(false);
             });
-    }, []);
+    }, [user]);
 
     return user ? (
         <div className="max-w-xl mx-auto p-4 md:py-24 flex flex-col">
@@ -121,8 +119,15 @@ export default function Page() {
             )}
         </div>
     ) : (
-        <div className="flex justify-center items-center p-4 h-screen text-sm text-muted-foreground">
-            You're not logged in!
-        </div>
+        user === null && (
+            <div className="flex justify-center items-center p-4 h-screen">
+                <Button variant={"link"} className="text-white" asChild>
+                    <a href={`/auth/login?redirect=${encodeURIComponent("/select-guild")}`}>
+                        Sign in with Discord
+                        <ExternalLinkIcon />
+                    </a>
+                </Button>
+            </div>
+        )
     );
 }
