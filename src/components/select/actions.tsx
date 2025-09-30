@@ -1,3 +1,4 @@
+import type { APIGuild } from "discord-api-types/v10";
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -21,11 +22,13 @@ export default function ActionSelector({
     action,
     disabled = false,
     messageId,
+    guild,
 }: {
     setAction: (action: RowAction) => void;
     action: string;
     disabled?: boolean;
     messageId: string;
+    guild: APIGuild;
 }) {
     const [open, setOpen] = useState(false);
     const [selectedValue, setSelectedValue] = useState(action);
@@ -38,6 +41,7 @@ export default function ActionSelector({
             .from("actions")
             .select("*")
             .eq("message_id", messageId)
+            .eq("guild_id", guild.id)
             .limit(25)
             .then(({ data, error }) => {
                 if (error) {
@@ -46,7 +50,7 @@ export default function ActionSelector({
                     setActions(data);
                 }
             });
-    }, [messageId, open]);
+    }, [messageId, open, guild]);
 
     return (
         <Popover open={open} onOpenChange={setOpen}>

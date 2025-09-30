@@ -195,6 +195,7 @@ export default function ButtonGroup({
                                         action={buttonActionId}
                                         disabled={messageId === "new"}
                                         messageId={messageId}
+                                        guild={guild}
                                     />
                                 </div>
                             )}

@@ -327,6 +327,7 @@ export default function TextDisplay({
                                             action={buttonActionId}
                                             disabled={messageId === "new"}
                                             messageId={messageId}
+                                            guild={guild}
                                         />
                                         <HelperText text="Select an action that this button should trigger" />
                                     </div>
