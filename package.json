@@ -8,8 +8,7 @@
         "start": "next start",
         "lint": "biome check",
         "lint:unsafe": "biome check --write --unsafe",
-        "format": "biome format --write",
-        "gen:types": "node scripts/gen-types.js"
+        "format": "biome format --write"
     },
     "dependencies": {
         "@buape/carbon": "^0.11.0",

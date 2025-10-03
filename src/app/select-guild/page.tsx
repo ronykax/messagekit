@@ -6,13 +6,11 @@ import {
     type RESTAPIPartialCurrentUserGuild,
     RouteBases,
 } from "discord-api-types/v10";
-import { ArrowRightIcon, LoaderIcon } from "lucide-react";
+import { ArrowRightIcon, ExternalLinkIcon, LoaderIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import ExternalLinkIcon from "@/components/preview/icons/external-link";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useUserStore } from "@/utils/stores/user";
 
 const CACHE_KEY = "discord_guilds_cache";
@@ -92,92 +90,108 @@ export default function Page() {
     }, [user]);
 
     return user ? (
-        <div className="max-w-xl mx-auto p-4 md:py-24 flex flex-col">
-            <span className="text-4xl font-semibold font-display">
+        <div className="max-w-md mx-auto p-4 md:py-24 flex flex-col">
+            <span className="text-2xl font-semibold font-display">
                 Welcome, {(user.user_metadata.name as string).slice(0, -2)}!
             </span>
 
-            <span className="text-muted-foreground mt-4">
-                Select a server below to continue. This is so Message Kit can access emojis,
-                channels, and other guild settings.
+            <span className="text-muted-foreground mt-3 text-sm">
+                Select a server below so Message Kit can access emojis, channels, and other guild
+                settings.
             </span>
 
             {loading ? (
-                <div className="mt-12 flex justify-center">
+                <div className="mt-6 flex justify-center">
                     <LoaderIcon className="animate-spin size-4" />
                 </div>
             ) : (
-                <div className="flex flex-col mt-6 rounded-md border overflow-hidden">
-                    {!guilds ? (
-                        <div className="text-sm flex justify-center text-muted-foreground items-center px-4 py-8">
-                            <Button className="text-white" variant="link" asChild>
-                                <Link
-                                    href={`/auth/login?redirect=${encodeURIComponent("/select-guild")}&prompt=none`}
-                                >
-                                    Load guilds
-                                    <ExternalLinkIcon />
-                                </Link>
-                            </Button>
-                        </div>
-                    ) : guilds.length === 0 ? (
-                        <div className="text-sm flex justify-center text-muted-foreground items-center px-4 py-8">
-                            No guilds found
-                        </div>
-                    ) : (
-                        guilds.map((guild, index) => {
-                            return (
-                                <Link
-                                    key={guild.id}
-                                    className={cn(
-                                        "hover:bg-secondary p-4 flex gap-4",
-                                        index !== guilds.length - 1 && "border-b",
+                <div className="flex flex-col mt-6 rounded-xl border overflow-hidden">
+                    {guilds?.map((guild) => {
+                        return (
+                            <Link
+                                key={guild.id}
+                                className="hover:bg-secondary p-4 flex gap-4 border-b"
+                                href={`/${guild.id}`}
+                                onClick={() => setRedirectingToGuild(guild.id)}
+                            >
+                                <div className="rounded-md bg-primary overflow-hidden size-10">
+                                    {guild.icon ? (
+                                        <img
+                                            src={
+                                                RouteBases.cdn +
+                                                CDNRoutes.guildIcon(
+                                                    guild.id,
+                                                    guild.icon,
+                                                    ImageFormat.WebP,
+                                                )
+                                            }
+                                            alt={guild.name}
+                                        />
+                                    ) : (
+                                        <div className="size-full text-sm font-medium flex items-center justify-center">
+                                            {guild.name
+                                                .trim()
+                                                .split(/\s+/)
+                                                .slice(0, 2)
+                                                .map((w) => w[0].toUpperCase())
+                                                .join("")}
+                                        </div>
                                     )}
-                                    href={`/${guild.id}`}
-                                    onClick={() => setRedirectingToGuild(guild.id)}
-                                >
-                                    <div className="rounded-md bg-primary overflow-hidden size-10">
-                                        {guild.icon ? (
-                                            <img
-                                                src={
-                                                    RouteBases.cdn +
-                                                    CDNRoutes.guildIcon(
-                                                        guild.id,
-                                                        guild.icon,
-                                                        ImageFormat.WebP,
-                                                    )
-                                                }
-                                                alt={guild.name}
-                                            />
-                                        ) : (
-                                            <div className="size-full text-sm font-medium flex items-center justify-center">
-                                                {guild.name
-                                                    .trim()
-                                                    .split(/\s+/)
-                                                    .slice(0, 2)
-                                                    .map((w) => w[0].toUpperCase())
-                                                    .join("")}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="flex flex-col gap-2 items-start">
-                                        <span className="font-display font-medium leading-none">
-                                            {guild.name}
-                                        </span>
-                                        <span className="text-muted-foreground text-sm leading-none">
-                                            {guild.name}
-                                        </span>
-                                    </div>
-                                    <div className="my-auto ml-auto">
-                                        {redirectingToGuild === guild.id ? (
-                                            <LoaderIcon className="size-4 mr-2 animate-spin" />
-                                        ) : (
-                                            <ArrowRightIcon className="size-4 mr-2" />
-                                        )}
-                                    </div>
-                                </Link>
-                            );
-                        })
-                    )}
+                                </div>
+                                <div className="flex flex-col gap-2 items-start">
+                                    <span className="font-display font-medium leading-none">
+                                        {guild.name}
+                                    </span>
+                                    <span className="text-muted-foreground text-sm leading-none">
+                                        {guild.name}
+                                    </span>
+                                </div>
+                                <div className="my-auto ml-auto">
+                                    {redirectingToGuild === guild.id ? (
+                                        <LoaderIcon className="size-4 mr-2 animate-spin" />
+                                    ) : (
+                                        <ArrowRightIcon className="size-4 mr-2" />
+                                    )}
+                                </div>
+                            </Link>
+                        );
+                    })}
+
+                    {/* bot invite link */}
+                    <Link
+                        className="hover:bg-secondary p-4 flex gap-4"
+                        href="https://discord.com/oauth2/authorize?client_id=1095138525160149103"
+                        target="_blank"
+                    >
+                        <div className="rounded-md bg-secondary overflow-hidden size-10 border">
+                            <div className="size-full text-sm font-medium flex items-center justify-center">
+                                <PlusIcon className="size-4" />
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-2 items-start">
+                            <span className="font-display font-medium leading-none">
+                                New Server
+                            </span>
+                            <span className="text-muted-foreground text-sm leading-none">
+                                Add Message Kit to your server
+                            </span>
+                        </div>
+                        <div className="my-auto ml-auto">
+                            <ExternalLinkIcon className="size-4 mr-2" />
+                        </div>
+                    </Link>
+                </div>
+            )}
+            {!loading && (
+                <div className="mt-4 text-center text-xs text-muted-foreground">
+                    Added Message Kit to a new server? Click{" "}
+                    <a
+                        className="underline underline-offset-2 hover:text-white cursor-pointer duration-150"
+                        href={`/auth/login?prompt=none&redirect=${encodeURIComponent("/select-guild")}`}
+                    >
+                        here
+                    </a>{" "}
+                    to reload.
                 </div>
             )}
         </div>
