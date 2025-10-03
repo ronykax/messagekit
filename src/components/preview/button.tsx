@@ -55,7 +55,6 @@ export default function PreviewButton({
 
     function Emoji() {
         return button.emoji?.id ? (
-            // biome-ignore lint/performance/noImgElement: i love goth mommy
             <img
                 className="size-5 mr-1"
                 src={

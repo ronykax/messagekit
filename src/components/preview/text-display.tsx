@@ -33,7 +33,6 @@ export default function PreviewTextDisplay({
             {component.type === ComponentType.Section &&
                 (component.accessory.type === ComponentType.Thumbnail ? (
                     <div className="rounded-md overflow-hidden size-[86px]">
-                        {/** biome-ignore lint/performance/noImgElement: balls */}
                         <img
                             src={component.accessory.media.url}
                             alt={component.accessory.description ?? "image"}

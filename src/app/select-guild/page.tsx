@@ -15,6 +15,15 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useUserStore } from "@/utils/stores/user";
 
+const CACHE_KEY = "discord_guilds_cache";
+const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+
+interface CachedData {
+    guilds: RESTAPIPartialCurrentUserGuild[];
+    timestamp: number;
+    userId: string;
+}
+
 export default function Page() {
     const { user } = useUserStore();
     const [guilds, setGuilds] = useState<RESTAPIPartialCurrentUserGuild[] | null>(null);
@@ -24,11 +33,56 @@ export default function Page() {
     useEffect(() => {
         if (!user) return;
 
+        const userId = user.user_metadata.provider_id as string;
+
+        // try to get cached data
+        const getCachedGuilds = () => {
+            try {
+                const cached = sessionStorage.getItem(CACHE_KEY);
+                if (!cached) return null;
+
+                const data: CachedData = JSON.parse(cached);
+                const now = Date.now();
+
+                // check if cache is valid (same user, within 12 hours)
+                if (data.userId === userId && now - data.timestamp < CACHE_DURATION) {
+                    return data.guilds;
+                }
+
+                // clear expired cache
+                sessionStorage.removeItem(CACHE_KEY);
+                return null;
+            } catch {
+                return null;
+            }
+        };
+
+        // check cache first
+        const cachedGuilds = getCachedGuilds();
+        if (cachedGuilds) {
+            setGuilds(cachedGuilds);
+            setLoading(false);
+            return;
+        }
+
+        // fetch fresh data if no valid cache
         fetch("api/discord/guilds")
             .then((res) => res.json())
             .then((data) => {
                 if (data.guilds) {
                     setGuilds(data.guilds);
+
+                    // Cache the guilds
+                    try {
+                        const cacheData: CachedData = {
+                            guilds: data.guilds,
+                            timestamp: Date.now(),
+                            userId: userId,
+                        };
+                        sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+                    } catch {
+                        // silently fail if sessionStorage is full or unavailable
+                    }
                 } else {
                     toast.error("Failed to fetch guilds");
                 }
@@ -83,7 +137,6 @@ export default function Page() {
                                 >
                                     <div className="rounded-md bg-primary overflow-hidden size-10">
                                         {guild.icon ? (
-                                            // biome-ignore lint/performance/noImgElement: no
                                             <img
                                                 src={
                                                     RouteBases.cdn +

@@ -254,7 +254,6 @@ export default function MediaGallery({
                                         )}
                                     >
                                         <div className="size-[44px] overflow-hidden rounded-md bg-accent relative">
-                                            {/** biome-ignore lint/performance/noImgElement: dm me if u read this */}
                                             <img
                                                 src={
                                                     image.media.url.startsWith("attachment://")
