@@ -1,10 +1,12 @@
+"use client";
+
 import {
     type APISectionComponent,
     type APITextDisplayComponent,
     ButtonStyle,
     ComponentType,
 } from "discord-api-types/v10";
-import { parseTokens, tokenize } from "@/utils/functions";
+import { groupNodes, parseTokens, tokenize } from "@/utils/functions";
 import PreviewButton from "./button";
 import { MarkdownRenderer } from "./renderer";
 
@@ -20,12 +22,13 @@ export default function PreviewTextDisplay({
             : component.components[0].content;
 
     const tokens = tokenize(content);
-    const ast = parseTokens(tokens);
+    const parsed = parseTokens(tokens);
+    const grouped = groupNodes(parsed);
 
     return (
         <div className="flex gap-4 max-w-[700px]">
-            <div className="flex flex-col gap-2">
-                <MarkdownRenderer nodes={ast} />
+            <div className="flex flex-col gap-2.5">
+                <MarkdownRenderer nodes={grouped} />
             </div>
             {component.type === ComponentType.Section &&
                 (component.accessory.type === ComponentType.Thumbnail ? (

@@ -125,7 +125,7 @@ html {
 }
 
 .md-h1 {
-    @apply text-2xl font-bold leading-9;
+    @apply text-2xl font-bold;
 }
 
 .md-h2 {
@@ -137,9 +137,9 @@ html {
 }
 
 .md-paragraph {
-    @apply text-foreground/85 leading-5.75;
+    @apply text-foreground/85 leading-relaxed;
 }
 
 .md-small {
-    @apply text-sm text-muted-foreground;
+    @apply text-sm text-muted-foreground leading-snug;
 }

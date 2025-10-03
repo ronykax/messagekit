@@ -11,6 +11,8 @@ import { createHandler } from "@buape/carbon/adapters/fetch";
 import { createClient } from "@/lib/supabase/server";
 import { BotActionSchema, BotActions } from "@/utils/types";
 
+const supabase = createClient({ useServiceRole: true });
+
 class MessageKitClient extends Client {
     async handleInteractionsRequest(req: Request): Promise<Response> {
         const isValid = await this.validateDiscordRequest(req);
@@ -38,12 +40,10 @@ class MessageKitClient extends Client {
 
             // REPLY TO INTERACTION
             if (params.type === BotActions.ReplyToInteraction) {
-                const supabase = await createClient({ useServiceRole: true });
-
-                const { data: templateData, error: templateDataError } = await supabase
+                const { data: templateData, error: templateDataError } = await (await supabase)
                     .from("messages")
                     .select("items")
-                    .filter("id", "eq", params.messageId)
+                    .eq("id", params.messageId)
                     .single();
 
                 if (templateDataError) {

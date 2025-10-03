@@ -17,7 +17,7 @@ import { useUserStore } from "@/utils/stores/user";
 
 export default function Page() {
     const { user } = useUserStore();
-    const [guilds, setGuilds] = useState<RESTAPIPartialCurrentUserGuild[]>([]);
+    const [guilds, setGuilds] = useState<RESTAPIPartialCurrentUserGuild[] | null>(null);
     const [loading, setLoading] = useState(true);
     const [redirectingToGuild, setRedirectingToGuild] = useState("");
 
@@ -27,8 +27,6 @@ export default function Page() {
         fetch("api/discord/guilds")
             .then((res) => res.json())
             .then((data) => {
-                if (!data) return;
-
                 if (data.guilds) {
                     setGuilds(data.guilds);
                 } else {
@@ -56,65 +54,77 @@ export default function Page() {
                 </div>
             ) : (
                 <div className="flex flex-col mt-6 rounded-md border overflow-hidden">
-                    {guilds.length === 0 && (
+                    {!guilds ? (
                         <div className="text-sm flex justify-center text-muted-foreground items-center px-4 py-8">
-                            No guilds found!
+                            <Button className="text-white" variant="link" asChild>
+                                <Link
+                                    href={`/auth/login?redirect=${encodeURIComponent("/select-guild")}&prompt=none`}
+                                >
+                                    Load guilds
+                                    <ExternalLinkIcon />
+                                </Link>
+                            </Button>
                         </div>
+                    ) : guilds.length === 0 ? (
+                        <div className="text-sm flex justify-center text-muted-foreground items-center px-4 py-8">
+                            No guilds found
+                        </div>
+                    ) : (
+                        guilds.map((guild, index) => {
+                            return (
+                                <Link
+                                    key={guild.id}
+                                    className={cn(
+                                        "hover:bg-secondary p-4 flex gap-4",
+                                        index !== guilds.length - 1 && "border-b",
+                                    )}
+                                    href={`/${guild.id}`}
+                                    onClick={() => setRedirectingToGuild(guild.id)}
+                                >
+                                    <div className="rounded-md bg-primary overflow-hidden size-10">
+                                        {guild.icon ? (
+                                            // biome-ignore lint/performance/noImgElement: no
+                                            <img
+                                                src={
+                                                    RouteBases.cdn +
+                                                    CDNRoutes.guildIcon(
+                                                        guild.id,
+                                                        guild.icon,
+                                                        ImageFormat.WebP,
+                                                    )
+                                                }
+                                                alt={guild.name}
+                                            />
+                                        ) : (
+                                            <div className="size-full text-sm font-medium flex items-center justify-center">
+                                                {guild.name
+                                                    .trim()
+                                                    .split(/\s+/)
+                                                    .slice(0, 2)
+                                                    .map((w) => w[0].toUpperCase())
+                                                    .join("")}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col gap-2 items-start">
+                                        <span className="font-display font-medium leading-none">
+                                            {guild.name}
+                                        </span>
+                                        <span className="text-muted-foreground text-sm leading-none">
+                                            {guild.name}
+                                        </span>
+                                    </div>
+                                    <div className="my-auto ml-auto">
+                                        {redirectingToGuild === guild.id ? (
+                                            <LoaderIcon className="size-4 mr-2 animate-spin" />
+                                        ) : (
+                                            <ArrowRightIcon className="size-4 mr-2" />
+                                        )}
+                                    </div>
+                                </Link>
+                            );
+                        })
                     )}
-                    {guilds.map((guild, index) => {
-                        return (
-                            <Link
-                                key={guild.id}
-                                className={cn(
-                                    "hover:bg-secondary p-4 flex gap-4",
-                                    index !== guilds.length - 1 && "border-b",
-                                )}
-                                href={`/${guild.id}`}
-                                onClick={() => setRedirectingToGuild(guild.id)}
-                            >
-                                <div className="rounded-md bg-primary overflow-hidden size-10">
-                                    {guild.icon ? (
-                                        // biome-ignore lint/performance/noImgElement: no
-                                        <img
-                                            src={
-                                                RouteBases.cdn +
-                                                CDNRoutes.guildIcon(
-                                                    guild.id,
-                                                    guild.icon,
-                                                    ImageFormat.WebP,
-                                                )
-                                            }
-                                            alt={guild.name}
-                                        />
-                                    ) : (
-                                        <div className="size-full text-sm font-medium flex items-center justify-center">
-                                            {guild.name
-                                                .trim()
-                                                .split(/\s+/)
-                                                .slice(0, 2)
-                                                .map((w) => w[0].toUpperCase())
-                                                .join("")}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex flex-col gap-2 items-start">
-                                    <span className="font-display font-medium leading-none">
-                                        {guild.name}
-                                    </span>
-                                    <span className="text-muted-foreground text-sm leading-none">
-                                        {guild.name}
-                                    </span>
-                                </div>
-                                <div className="my-auto ml-auto">
-                                    {redirectingToGuild === guild.id ? (
-                                        <LoaderIcon className="size-4 mr-2 animate-spin" />
-                                    ) : (
-                                        <ArrowRightIcon className="size-4 mr-2" />
-                                    )}
-                                </div>
-                            </Link>
-                        );
-                    })}
                 </div>
             )}
         </div>

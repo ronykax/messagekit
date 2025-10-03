@@ -83,7 +83,6 @@ export default function ActionsSheet({ open, setOpen, messageId, guild }: Props)
             .from("actions")
             .select("*")
             .eq("message_id", messageId)
-            .eq("guild_id", guild.id)
             .limit(25)
             .then(({ data, error }) => {
                 if (error) {
@@ -94,7 +93,7 @@ export default function ActionsSheet({ open, setOpen, messageId, guild }: Props)
 
                 setLoading(false);
             });
-    }, [messageId, open, guild]);
+    }, [messageId, open]);
 
     const filteredActions = useMemo(() => {
         if (searchValue.trim().length > 0) {

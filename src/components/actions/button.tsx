@@ -15,11 +15,7 @@ export default function ActionsButton({
 
     return (
         <>
-            <Button
-                variant="outline"
-                disabled={messageId === "new"}
-                onClick={() => setSheetOpen(true)}
-            >
+            <Button variant="outline" onClick={() => setSheetOpen(true)}>
                 <PickaxeIcon />
                 Actions
             </Button>

@@ -20,7 +20,7 @@ import { type Dispatch, type SetStateAction, useEffect, useMemo, useState } from
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import type { Json } from "@/utils/database.types";
+import type { Json } from "@/utils/db.types";
 import { useConfettiStore } from "@/utils/stores/confetti";
 import { useFiles } from "@/utils/stores/files";
 import { useUserStore } from "@/utils/stores/user";

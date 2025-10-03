@@ -34,30 +34,37 @@ export function MarkdownRenderer({ nodes }: { nodes: MarkdownNode[] }) {
             case "paragraph":
                 return (
                     <p key={i} className="md-paragraph">
-                        {node.content}
+                        {renderNodesWithMentions(node.content)}
                     </p>
                 );
 
             case "small":
                 return (
                     <small className="md-small" key={i}>
-                        {node.content}
+                        {renderNodesWithMentions(node.content)}
                     </small>
                 );
 
             case "list":
                 return node.ordered ? (
                     <ol key={i} className="ml-4 list-decimal flex flex-col gap-2">
-                        {node.items.map((it, i) => (
-                            <li key={i}>{it}</li>
+                        {node.items.map((item, i) => (
+                            <li key={i}>{renderNodesWithMentions(item)}</li>
                         ))}
                     </ol>
                 ) : (
                     <ul key={i} className="ml-4 list-disc flex flex-col gap-2">
-                        {node.items.map((it, i) => (
-                            <li key={i}>{it}</li>
+                        {node.items.map((item, i) => (
+                            <li key={i}>{renderNodesWithMentions(item)}</li>
                         ))}
                     </ul>
+                );
+
+            case "code-block":
+                return (
+                    <pre key={i} className="border">
+                        <code>{node.content}</code>
+                    </pre>
                 );
 
             default:

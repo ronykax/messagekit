@@ -9,7 +9,6 @@ import {
     ChevronRightIcon,
     DownloadIcon,
     EditIcon,
-    EllipsisIcon,
     EraserIcon,
     ExternalLinkIcon,
     PlusIcon,
@@ -259,33 +258,23 @@ export default function EditorNavbar({
                         </SelectContent>
                     </Select>
                 )}
+                {/* DELETE MESSAGE */}
+                <Button variant="ghost" size="icon">
+                    <Trash2Icon />
+                </Button>
 
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant={"ghost"}>
-                            <EllipsisIcon />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuItem disabled>
-                            <EditIcon />
-                            Rename
-                        </DropdownMenuItem>
-                        <DropdownMenuItem variant="destructive">
-                            <Trash2Icon />
-                            Delete
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                {/* RENAME MESSAGE */}
+                <Button variant="ghost" size="icon" className="-ml-1">
+                    <EditIcon />
+                </Button>
             </div>
 
             <div className="flex gap-2">
                 {/* CLEAR COMPONENS BUTTON */}
                 <Dialog>
                     <DialogTrigger asChild>
-                        <Button variant="ghost">
+                        <Button variant="ghost" size="icon">
                             <EraserIcon />
-                            Clear All
                         </Button>
                     </DialogTrigger>
                     <DialogContent>

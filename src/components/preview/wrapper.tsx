@@ -15,7 +15,7 @@ export default function PreviewWrapper({ items }: { items: APIMessageTopLevelCom
     }, [items]);
 
     return (
-        <div className="p-6 whitespace-pre-wrap bg-[#1a1a1e] flex flex-col h-full gap-2 overflow-y-auto">
+        <div className="p-6 whitespace-pre-wrap bg-[#1a1a1e] flex flex-col h-full gap-3 overflow-y-auto">
             {items.map((component) => {
                 if (component.type === ComponentType.TextDisplay) {
                     return <PreviewTextDisplay key={component.id} component={component} />;

@@ -60,6 +60,8 @@ export default function EditorPanel({
                 setItems(defaultComponents);
             }
 
+            document.title = `${guild.name} - Message Kit`;
+
             return;
         }
 
@@ -67,7 +69,7 @@ export default function EditorPanel({
 
         supabase
             .from("messages")
-            .select("items")
+            .select("items, name")
             .eq("id", messageId)
             .single()
             .then(({ data, error }) => {
@@ -75,10 +77,12 @@ export default function EditorPanel({
                     toast.error("Failed to fetch message");
                 } else {
                     setItems(data.items as unknown as APIMessageTopLevelComponent[]);
+
+                    document.title = `${data.name} | ${guild.name} - Message Kit`;
                     hasFetchedRef.current = messageId;
                 }
             });
-    }, [messageId, setItems, user?.id]);
+    }, [messageId, setItems, user?.id, guild.name]);
 
     return (
         <div className="max-h-[100svh] flex flex-col h-full">
@@ -87,7 +91,7 @@ export default function EditorPanel({
                 <AnimatePresence>
                     <ItemsValidator key="alert" components={items} />
                     <Items
-                        key="components"
+                        key="items"
                         items={items}
                         setItems={setItems}
                         guild={guild}

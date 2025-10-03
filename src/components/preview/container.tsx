@@ -19,7 +19,7 @@ export default function PreviewContainer({
                     style={{ backgroundColor: numberToHex(comp.accent_color) }}
                 />
             )}
-            <div className="flex flex-col gap-2 bg-white/2.5 text-sm" style={{ padding: "16px" }}>
+            <div className="flex flex-col gap-2.5 bg-white/2.5 text-sm" style={{ padding: "16px" }}>
                 {comp.components.map((component) => {
                     if (component.type === ComponentType.TextDisplay) {
                         return (
