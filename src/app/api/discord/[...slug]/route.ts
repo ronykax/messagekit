@@ -40,17 +40,17 @@ class MessageKitClient extends Client {
 
             // REPLY TO INTERACTION
             if (params.type === BotActions.ReplyToInteraction) {
-                const { data: templateData, error: templateDataError } = await (await supabase)
+                const { data: message, error: messageError } = await (await supabase)
                     .from("messages")
                     .select("items")
                     .eq("id", params.messageId)
                     .single();
 
-                if (templateDataError) {
+                if (messageError) {
                     const response: APIInteractionResponse = {
                         type: InteractionResponseType.ChannelMessageWithSource,
                         data: {
-                            content: JSON.stringify(templateDataError),
+                            content: "Failed to get message!",
                             flags: MessageFlags.Ephemeral,
                         },
                     };
@@ -61,7 +61,7 @@ class MessageKitClient extends Client {
                 const response: APIInteractionResponse = {
                     type: InteractionResponseType.ChannelMessageWithSource,
                     data: {
-                        components: templateData.items as unknown as APIMessageTopLevelComponent[],
+                        components: message.items as unknown as APIMessageTopLevelComponent[],
                         flags:
                             MessageFlags.IsComponentsV2 |
                             (params.ephemeral ? MessageFlags.Ephemeral : 0),
