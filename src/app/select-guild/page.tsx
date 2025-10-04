@@ -92,7 +92,7 @@ export default function Page() {
     return user ? (
         <div className="max-w-md mx-auto p-4 md:py-24 flex flex-col">
             <span className="text-2xl font-semibold font-display">
-                Welcome, {(user.user_metadata.name as string).slice(0, -2)}!
+                Welcome, {(user.user_metadata.custom_claims.global_name)}!
             </span>
 
             <span className="text-muted-foreground mt-3 text-sm">
