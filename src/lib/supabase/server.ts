@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/utils/db.types";
 
-export async function createClient({ useServiceRole }: { useServiceRole?: boolean } = { useServiceRole: false }) {
+export async function createClient({ useServiceRole = false }: { useServiceRole?: boolean }) {
     const cookieStore = await cookies();
 
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
