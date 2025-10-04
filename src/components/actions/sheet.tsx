@@ -82,7 +82,7 @@ export default function ActionsSheet({ open, setOpen, messageId, guild }: Props)
         supabase
             .from("actions")
             .select("*")
-            .filter("message_id", "eq", messageId)
+            .eq("message_id", messageId)
             .limit(25)
             .then(({ data, error }) => {
                 if (error) {

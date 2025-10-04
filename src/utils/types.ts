@@ -1,6 +1,6 @@
 import type { RESTAPIPartialCurrentUserGuild } from "discord-api-types/v10";
 import { z } from "zod";
-import type { Json } from "./database.types";
+import type { Database } from "./db.types";
 
 export type SendOptions =
     | {
@@ -42,31 +42,16 @@ export type BotActionBody = z.infer<typeof BotActionSchema>;
 
 export type Guild = RESTAPIPartialCurrentUserGuild;
 
-export type RowMessage = {
-    created_at: string;
-    guild_id: string;
-    id: string;
-    items: Json;
-    name: string | null;
-    updated_at: string;
-    user_id: string;
-};
-
-export type RowAction = {
-    created_at: string;
-    details: Json;
-    id: number;
-    message_id: string;
-    name: string;
-    updated_at: string;
-    user_id: string;
-};
+export type RowMessage = Database["public"]["Tables"]["messages"]["Row"];
+export type RowAction = Database["public"]["Tables"]["actions"]["Row"];
 
 export type MarkdownNode =
     | { type: "linebreak" }
     | { type: "heading"; level: number; content: string }
     | { type: "paragraph"; content: string }
     | { type: "small"; content: string }
-    | { type: "list"; ordered: boolean; items: string[] };
+    | { type: "list"; ordered: boolean; items: string[] }
+    | { type: "list-item"; ordered: boolean; content: string }
+    | { type: "code-block"; content: string };
 
 export type CockpitMode = "new" | "guild-new" | "guild-edit";

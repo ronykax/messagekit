@@ -7,13 +7,13 @@ import PreviewWrapper from "../preview/wrapper";
 import { Button } from "../ui/button";
 
 export default function PreviewPanel({
-    components,
-    setComponents,
+    items,
+    setItems,
     messageId,
     guild,
 }: {
-    components: APIMessageTopLevelComponent[];
-    setComponents: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
+    items: APIMessageTopLevelComponent[];
+    setItems: Dispatch<SetStateAction<APIMessageTopLevelComponent[]>>;
     messageId: string;
     guild: APIGuild;
 }) {
@@ -29,12 +29,7 @@ export default function PreviewPanel({
 
     return (
         <div className="max-h-[100svh] flex flex-col h-full">
-            <PreviewNavbar
-                items={components}
-                setItems={setComponents}
-                messageId={messageId}
-                guild={guild}
-            />
+            <PreviewNavbar items={items} setItems={setItems} messageId={messageId} guild={guild} />
             <div className="p-4 whitespace-pre-wrap flex-1 overflow-y-auto">
                 <div className="flex flex-col bg-card rounded-xl border overflow-hidden">
                     <div className="p-2 border-b flex items-center justify-between">
@@ -53,18 +48,16 @@ export default function PreviewPanel({
                                 size="icon"
                                 className="size-7"
                                 onClick={() => {
-                                    navigator.clipboard.writeText(
-                                        JSON.stringify(components, null, 4),
-                                    );
+                                    navigator.clipboard.writeText(JSON.stringify(items, null, 4));
                                     setCopied(true);
                                 }}
-                                disabled={components.length === 0}
+                                disabled={items.length === 0}
                             >
                                 {copied ? <CheckIcon /> : <CopyIcon />}
                             </Button>
                         </div>
                     </div>
-                    <PreviewWrapper components={components} />
+                    <PreviewWrapper items={items} />
                 </div>
                 <div className="flex flex-col gap-2 md:flex-row md:justify-between mt-3 text-xs text-muted-foreground">
                     <div className="flex items-center">

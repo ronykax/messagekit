@@ -5,9 +5,9 @@ export default function PreviewSeparator({ component }: { component: APISeparato
     return (
         <div
             className={cn(
-                "h-[1px] bg-[#46474e]",
+                "h-[1px]",
                 component.spacing === SeparatorSpacingSize.Large ? "my-[8px]" : "my-[0px]",
-                component.divider ? "bg-[#46474e]" : "bg-transparent",
+                component.divider ? "bg-white/7.5" : "bg-transparent",
             )}
         />
     );

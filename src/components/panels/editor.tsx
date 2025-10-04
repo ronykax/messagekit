@@ -16,6 +16,7 @@ import { AnimatePresence } from "motion/react";
 import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { defaultComponents } from "@/utils/constants";
 import { moveItem, randomNumber, removeAt, updateAt } from "@/utils/functions";
 import { useUserStore } from "@/utils/stores/user";
 import ButtonGroup from "../editor/button-group";
@@ -45,13 +46,30 @@ export default function EditorPanel({
     const hasFetchedRef = useRef<string | null>(null);
 
     useEffect(() => {
-        if (!user) return;
-        if (messageId === "new") return;
+        if (!user?.id) return;
+
+        if (messageId === "new") {
+            const saved = localStorage.getItem("output-json");
+
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                    setItems(parsed);
+                }
+            } else {
+                setItems(defaultComponents);
+            }
+
+            document.title = `${guild.name} - Message Kit`;
+
+            return;
+        }
+
         if (hasFetchedRef.current === messageId) return;
 
         supabase
             .from("messages")
-            .select("items")
+            .select("items, name")
             .eq("id", messageId)
             .single()
             .then(({ data, error }) => {
@@ -59,10 +77,12 @@ export default function EditorPanel({
                     toast.error("Failed to fetch message");
                 } else {
                     setItems(data.items as unknown as APIMessageTopLevelComponent[]);
+
+                    document.title = `${data.name} | ${guild.name} - Message Kit`;
                     hasFetchedRef.current = messageId;
                 }
             });
-    }, [messageId, setItems, user]);
+    }, [messageId, setItems, user?.id, guild.name]);
 
     return (
         <div className="max-h-[100svh] flex flex-col h-full">
@@ -71,7 +91,7 @@ export default function EditorPanel({
                 <AnimatePresence>
                     <ItemsValidator key="alert" components={items} />
                     <Items
-                        key="components"
+                        key="items"
                         items={items}
                         setItems={setItems}
                         guild={guild}

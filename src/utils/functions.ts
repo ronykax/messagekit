@@ -93,22 +93,10 @@ export function tokenize(input: string): string[] {
 export function parseTokens(tokens: string[]): MarkdownNode[] {
     const nodes: MarkdownNode[] = [];
 
-    const isOrderedItem = (line: string) => {
-        // skip leading spaces
-        let i = 0;
-        while (i < line.length && line[i] === " ") i++;
-        const start = i;
-        // must have at least one digit
-        while (i < line.length && line[i] >= "0" && line[i] <= "9") i++;
-        if (i === start) return false;
-        // next should be ". "
-        return line[i] === "." && line[i + 1] === " ";
-    };
-
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
 
-        // handle explicit newline tokens (preserve extra linebreaks)
+        // newlines -> always push linebreak
         if (token === "\n") {
             let newlineCount = 0;
             while (tokens[i] === "\n") {
@@ -120,7 +108,7 @@ export function parseTokens(tokens: string[]): MarkdownNode[] {
             continue;
         }
 
-        // headings + small
+        // headings
         if (token.startsWith("### ")) {
             nodes.push({ type: "heading", level: 3, content: token.slice(4) });
             continue;
@@ -133,74 +121,31 @@ export function parseTokens(tokens: string[]): MarkdownNode[] {
             nodes.push({ type: "heading", level: 1, content: token.slice(2) });
             continue;
         }
+
+        // small text
         if (token.startsWith("-# ")) {
             nodes.push({ type: "small", content: token.slice(3) });
             continue;
         }
 
-        // helper to collect list items (preserves: skipping "\n" between items)
-        function collectList(
-            startIndex: number,
-            matchFn: (t: string) => boolean,
-            extractFn: (t: string) => string | null,
-        ) {
-            const items: string[] = [];
-            let j = startIndex;
-            while (j < tokens.length) {
-                const t = tokens[j];
-                if (t === "\n") {
-                    if (items.length === 0) {
-                        // leading empty lines before the first item -> skip them
-                        j++;
-                        continue;
-                    }
-                    // blank line after we've started collecting items:
-                    // stop the list so outer loop can emit linebreak nodes
-                    break;
-                }
-                if (!matchFn(t)) break;
-                const item = extractFn(t);
-                if (item === null) break;
-                items.push(item);
-                j++;
-            }
-            return { items, nextIndex: j };
-        }
-
-        // unordered list detection (- or *)
-        const tTrim = token.trimStart();
-        if (tTrim.startsWith("- ") || tTrim.startsWith("* ")) {
-            const { items, nextIndex } = collectList(
-                i,
-                (t) => {
-                    const s = t.trimStart();
-                    return s.startsWith("- ") || s.startsWith("* ");
-                },
-                (t) => t.trimStart().slice(2),
-            );
-
-            nodes.push({ type: "list", ordered: false, items });
-            i = nextIndex - 1;
+        // unordered list item
+        if (token.trimStart().startsWith("- ") || token.trimStart().startsWith("* ")) {
+            nodes.push({
+                type: "list-item",
+                ordered: false,
+                content: token.trimStart().slice(2),
+            });
             continue;
         }
 
-        // ordered list detection (like "1. item")
-        if (isOrderedItem(token)) {
-            const extractOrdered = (t: string) => {
-                let k = 0;
-                // skip leading spaces
-                while (k < t.length && t[k] === " ") k++;
-                // skip digits
-                while (k < t.length && t[k] >= "0" && t[k] <= "9") k++;
-                // require ". " after the digits (same as original)
-                if (t[k] === "." && t[k + 1] === " ") return t.slice(k + 2);
-                return null;
-            };
-
-            const { items, nextIndex } = collectList(i, (t) => isOrderedItem(t), extractOrdered);
-
-            nodes.push({ type: "list", ordered: true, items });
-            i = nextIndex - 1;
+        // ordered list item (like "1. foo")
+        const orderedMatch = token.trimStart().match(/^(\d+)\. (.+)$/);
+        if (orderedMatch) {
+            nodes.push({
+                type: "list-item",
+                ordered: true,
+                content: orderedMatch[2],
+            });
             continue;
         }
 
@@ -209,4 +154,50 @@ export function parseTokens(tokens: string[]): MarkdownNode[] {
     }
 
     return nodes;
+}
+
+export function groupNodes(nodes: MarkdownNode[]): MarkdownNode[] {
+    const result: MarkdownNode[] = [];
+    let currentList: { ordered: boolean; items: string[] } | null = null;
+
+    for (const node of nodes) {
+        if (node.type === "list-item") {
+            // Start a new list if none exists or type mismatches
+            if (!currentList || currentList.ordered !== node.ordered) {
+                // push previous list
+                if (currentList) {
+                    result.push({
+                        type: "list",
+                        ordered: currentList.ordered,
+                        items: currentList.items,
+                    });
+                }
+                // start new list
+                currentList = { ordered: node.ordered, items: [] };
+            }
+            currentList.items.push(node.content);
+        } else {
+            // flush current list before handling other node
+            if (currentList) {
+                result.push({
+                    type: "list",
+                    ordered: currentList.ordered,
+                    items: currentList.items,
+                });
+                currentList = null;
+            }
+            result.push(node);
+        }
+    }
+
+    // flush trailing list
+    if (currentList) {
+        result.push({
+            type: "list",
+            ordered: currentList.ordered,
+            items: currentList.items,
+        });
+    }
+
+    return result;
 }

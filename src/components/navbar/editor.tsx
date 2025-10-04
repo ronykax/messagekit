@@ -6,9 +6,9 @@ import {
     RouteBases,
 } from "discord-api-types/v10";
 import {
+    ChevronRightIcon,
     DownloadIcon,
     EditIcon,
-    EllipsisIcon,
     EraserIcon,
     ExternalLinkIcon,
     PlusIcon,
@@ -55,6 +55,8 @@ import {
     SelectValue,
 } from "../ui/select";
 import { Skeleton } from "../ui/skeleton";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
 
 const supabase = createClient();
 
@@ -73,6 +75,7 @@ export default function EditorNavbar({
     const { user } = useUserStore();
 
     const [messages, setMessages] = useState<RowMessage[]>([]);
+    const [newName, setNewName] = useState("");
 
     const addComponent = <T extends APIMessageTopLevelComponent>(component: T) =>
         setItems((previousComponents) => append(previousComponents, component));
@@ -125,6 +128,36 @@ export default function EditorNavbar({
         const data = JSON.parse(text);
 
         setItems(data);
+    }
+
+    async function handleMessageDelete() {
+        supabase
+            .from("messages")
+            .delete()
+            .eq("id", messageId)
+            .then(({ error }) => {
+                if (error) {
+                    toast.error("Failed to delete message");
+                } else {
+                    toast.success("Message has been deleted");
+                    router.push(`/${guild.id}`);
+                }
+            });
+    }
+
+    async function handleMessageRename() {
+        supabase
+            .from("messages")
+            .update({ name: newName })
+            .eq("id", messageId)
+            .then(({ error }) => {
+                if (error) {
+                    toast.error("Failed to rename message");
+                } else {
+                    toast.success("Message has been renamed");
+                    location.reload();
+                }
+            });
     }
 
     return (
@@ -187,6 +220,8 @@ export default function EditorNavbar({
                         <span className="text-muted-foreground leading-none text-xs">{guild.approximate_member_count} members</span>
                     </div> */}
                 </div>
+
+                <ChevronRightIcon className="size-4 opacity-75" />
 
                 {user === undefined && messages === null ? (
                     <Skeleton className="w-[200px] h-full" />
@@ -256,33 +291,76 @@ export default function EditorNavbar({
                         </SelectContent>
                     </Select>
                 )}
-
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant={"ghost"}>
-                            <EllipsisIcon />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuItem disabled>
-                            <EditIcon />
-                            Rename
-                        </DropdownMenuItem>
-                        <DropdownMenuItem variant="destructive">
+                {/* DELETE MESSAGE */}
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon" disabled={messageId === "new"}>
                             <Trash2Icon />
-                            Delete
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Are you sure?</DialogTitle>
+                            <DialogDescription>
+                                You're about to delete this message permanently
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                                <Button variant="destructive" onClick={handleMessageDelete}>
+                                    Confirm
+                                </Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* RENAME MESSAGE */}
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="-ml-1"
+                            disabled={messageId === "new"}
+                        >
+                            <EditIcon />
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Rename Message</DialogTitle>
+                            <DialogDescription>Rename this message</DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col gap-2">
+                            <Label>Name</Label>
+                            <Input
+                                placeholder="Enter new name"
+                                value={newName}
+                                onChange={(e) => setNewName(e.currentTarget.value)}
+                            />
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                                <Button onClick={handleMessageRename}>Confirm</Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             <div className="flex gap-2">
                 {/* CLEAR COMPONENS BUTTON */}
                 <Dialog>
                     <DialogTrigger asChild>
-                        <Button variant="ghost">
+                        <Button variant="ghost" size="icon">
                             <EraserIcon />
-                            Clear All
                         </Button>
                     </DialogTrigger>
                     <DialogContent>

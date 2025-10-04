@@ -46,7 +46,7 @@ export default function ReplyToInteractionFormBody({ data, setData }: Props) {
                     Message <RequiredIndicator />
                 </Label>
                 <Select
-                    onValueChange={(messageId) => setData({ ...data, messageId })}
+                    onValueChange={(messageId) => setData({ ...data, messageId: messageId })}
                     value={data.messageId}
                 >
                     <SelectTrigger className="w-full">

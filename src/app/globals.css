@@ -137,9 +137,9 @@ html {
 }
 
 .md-paragraph {
-    @apply text-foreground/85;
+    @apply text-foreground/85 leading-relaxed;
 }
 
 .md-small {
-    @apply text-sm text-muted-foreground;
+    @apply text-sm text-muted-foreground leading-snug;
 }

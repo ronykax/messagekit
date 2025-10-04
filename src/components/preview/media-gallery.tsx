@@ -48,7 +48,6 @@ const PreviewMediaTile = memo(function PreviewMediaTile({
         <div
             className={`rounded-lg overflow-hidden relative ${aspect === "video" ? "aspect-video" : aspect === "square" ? "aspect-square" : ""} ${className ?? ""}`}
         >
-            {/* biome-ignore lint/performance/noImgElement: image preview */}
             <img
                 src={url}
                 className={cn(

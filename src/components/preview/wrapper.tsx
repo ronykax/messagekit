@@ -7,20 +7,16 @@ import PreviewMediaGallery from "./media-gallery";
 import PreviewSeparator from "./separator";
 import PreviewTextDisplay from "./text-display";
 
-export default function PreviewWrapper({
-    components,
-}: {
-    components: APIMessageTopLevelComponent[];
-}) {
+export default function PreviewWrapper({ items }: { items: APIMessageTopLevelComponent[] }) {
     useEffect(() => {
         setTimeout(() => {
-            localStorage.setItem("output-json", JSON.stringify(components));
+            localStorage.setItem("output-json", JSON.stringify(items));
         }, 1000);
-    }, [components]);
+    }, [items]);
 
     return (
-        <div className="p-6 whitespace-pre-wrap bg-[#1a1a1e] flex flex-col h-full gap-2 overflow-y-auto">
-            {components.map((component) => {
+        <div className="p-6 whitespace-pre-wrap bg-[#1a1a1e] flex flex-col h-full gap-3 overflow-y-auto">
+            {items.map((component) => {
                 if (component.type === ComponentType.TextDisplay) {
                     return <PreviewTextDisplay key={component.id} component={component} />;
                 } else if (component.type === ComponentType.Section) {

@@ -23,12 +23,7 @@ export default function Cockpit({ messageId, guild }: { messageId: string; guild
     );
 
     const preview = (
-        <PreviewPanel
-            components={items}
-            setComponents={setItems}
-            guild={guild}
-            messageId={messageId}
-        />
+        <PreviewPanel items={items} setItems={setItems} guild={guild} messageId={messageId} />
     );
 
     return (

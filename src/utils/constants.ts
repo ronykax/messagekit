@@ -59,7 +59,7 @@ export const defaultComponents: APIMessageTopLevelComponent[] = [
                 id: 280096184,
                 type: 10,
                 content:
-                    "# Getting started\n- Install Message Kit in your server.\n- Click **Add Item** at the top of this panel and choose one.\n- Customize the component as you like.\n- Send it! You can send your message via our bot or with webhooks.",
+                    "# Getting started\n- Install Message Kit in your server.\n- Click **Add Item** at the top of the left panel and choose one.\n- Customize the component as you like.\n- Send it! You can send your message via our bot or with webhooks.",
             },
         ],
         accent_color: 5727743,

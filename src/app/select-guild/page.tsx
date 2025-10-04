@@ -6,77 +6,116 @@ import {
     type RESTAPIPartialCurrentUserGuild,
     RouteBases,
 } from "discord-api-types/v10";
-import { ArrowRightIcon, LoaderIcon } from "lucide-react";
+import { ArrowRightIcon, ExternalLinkIcon, LoaderIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/utils/stores/user";
+
+const CACHE_KEY = "discord_guilds_cache";
+const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+
+interface CachedData {
+    guilds: RESTAPIPartialCurrentUserGuild[];
+    timestamp: number;
+    userId: string;
+}
 
 export default function Page() {
     const { user } = useUserStore();
-    const [guilds, setGuilds] = useState<RESTAPIPartialCurrentUserGuild[]>([]);
+    const [guilds, setGuilds] = useState<RESTAPIPartialCurrentUserGuild[] | null>(null);
     const [loading, setLoading] = useState(true);
     const [redirectingToGuild, setRedirectingToGuild] = useState("");
 
     useEffect(() => {
-        fetch("api/discord/guilds")
-            .then((res) => {
-                if (res.status === 401) {
-                    window.location.href = `/auth/login?prompt=none&redirect=${encodeURIComponent("/select-guild")}`;
-                    return null;
-                }
-                return res.json();
-            })
-            .then((data) => {
-                if (!data) return; // Redirecting
+        if (!user) return;
 
+        const userId = user.user_metadata.provider_id as string;
+
+        // try to get cached data
+        const getCachedGuilds = () => {
+            try {
+                const cached = sessionStorage.getItem(CACHE_KEY);
+                if (!cached) return null;
+
+                const data: CachedData = JSON.parse(cached);
+                const now = Date.now();
+
+                // check if cache is valid (same user, within 12 hours)
+                if (data.userId === userId && now - data.timestamp < CACHE_DURATION) {
+                    return data.guilds;
+                }
+
+                // clear expired cache
+                sessionStorage.removeItem(CACHE_KEY);
+                return null;
+            } catch {
+                return null;
+            }
+        };
+
+        // check cache first
+        const cachedGuilds = getCachedGuilds();
+        if (cachedGuilds) {
+            setGuilds(cachedGuilds);
+            setLoading(false);
+            return;
+        }
+
+        // fetch fresh data if no valid cache
+        fetch("api/discord/guilds")
+            .then((res) => res.json())
+            .then((data) => {
                 if (data.guilds) {
                     setGuilds(data.guilds);
+
+                    // Cache the guilds
+                    try {
+                        const cacheData: CachedData = {
+                            guilds: data.guilds,
+                            timestamp: Date.now(),
+                            userId: userId,
+                        };
+                        sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+                    } catch {
+                        // silently fail if sessionStorage is full or unavailable
+                    }
                 } else {
                     toast.error("Failed to fetch guilds");
                 }
 
                 setLoading(false);
             });
-    }, []);
+    }, [user]);
 
     return user ? (
-        <div className="max-w-xl mx-auto p-4 md:py-24 flex flex-col">
-            <span className="text-4xl font-semibold font-display">
-                Welcome, {(user.user_metadata.name as string).slice(0, -2)}!
+        <div className="max-w-md mx-auto p-4 md:py-24 flex flex-col">
+            <span className="text-2xl font-semibold font-display">
+                Welcome, {(user.user_metadata.custom_claims.global_name)}!
             </span>
 
-            <span className="text-muted-foreground mt-4">
-                Select a server below to continue. This is so Message Kit can access emojis,
-                channels, and other guild settings.
+            <span className="text-muted-foreground mt-3 text-sm">
+                Select a server below so Message Kit can access emojis, channels, and other guild
+                settings.
             </span>
 
             {loading ? (
-                <div className="mt-12 flex justify-center">
+                <div className="mt-6 flex justify-center">
                     <LoaderIcon className="animate-spin size-4" />
                 </div>
             ) : (
-                <div className="flex flex-col mt-6 rounded-md border overflow-hidden">
-                    {guilds.length === 0 && (
-                        <div className="text-sm flex justify-center text-muted-foreground items-center px-4 py-8">
-                            No guilds found!
-                        </div>
-                    )}
-                    {guilds.map((guild, index) => {
+                <div className="flex flex-col mt-6 rounded-xl border overflow-hidden">
+                    {guilds?.map((guild) => {
                         return (
                             <Link
                                 key={guild.id}
-                                className={cn(
-                                    "hover:bg-secondary p-4 flex gap-4",
-                                    index !== guilds.length - 1 && "border-b",
-                                )}
+                                className="hover:bg-secondary p-4 flex gap-4 border-b"
                                 href={`/${guild.id}`}
                                 onClick={() => setRedirectingToGuild(guild.id)}
                             >
                                 <div className="rounded-md bg-primary overflow-hidden size-10">
                                     {guild.icon ? (
-                                        // biome-ignore lint/performance/noImgElement: no
                                         <img
                                             src={
                                                 RouteBases.cdn +
@@ -117,12 +156,55 @@ export default function Page() {
                             </Link>
                         );
                     })}
+
+                    {/* bot invite link */}
+                    <Link
+                        className="hover:bg-secondary p-4 flex gap-4"
+                        href="https://discord.com/oauth2/authorize?client_id=1095138525160149103"
+                        target="_blank"
+                    >
+                        <div className="rounded-md bg-secondary overflow-hidden size-10 border">
+                            <div className="size-full text-sm font-medium flex items-center justify-center">
+                                <PlusIcon className="size-4" />
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-2 items-start">
+                            <span className="font-display font-medium leading-none">
+                                New Server
+                            </span>
+                            <span className="text-muted-foreground text-sm leading-none">
+                                Add Message Kit to your server
+                            </span>
+                        </div>
+                        <div className="my-auto ml-auto">
+                            <ExternalLinkIcon className="size-4 mr-2" />
+                        </div>
+                    </Link>
+                </div>
+            )}
+            {!loading && (
+                <div className="mt-4 text-center text-xs text-muted-foreground">
+                    Added Message Kit to a new server? Click{" "}
+                    <a
+                        className="underline underline-offset-2 hover:text-white cursor-pointer duration-150"
+                        href={`/auth/login?prompt=none&redirect=${encodeURIComponent("/select-guild")}`}
+                    >
+                        here
+                    </a>{" "}
+                    to reload.
                 </div>
             )}
         </div>
     ) : (
-        <div className="flex justify-center items-center p-4 h-screen text-sm text-muted-foreground">
-            You're not logged in!
-        </div>
+        user === null && (
+            <div className="flex justify-center items-center p-4 h-screen">
+                <Button variant={"link"} className="text-white" asChild>
+                    <a href={`/auth/login?redirect=${encodeURIComponent("/select-guild")}`}>
+                        Sign in with Discord
+                        <ExternalLinkIcon />
+                    </a>
+                </Button>
+            </div>
+        )
     );
 }

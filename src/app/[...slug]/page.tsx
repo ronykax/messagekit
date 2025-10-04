@@ -6,6 +6,7 @@ import {
     Routes,
 } from "discord-api-types/v10";
 import { redirect } from "next/navigation";
+import { unstable_cache } from "next/cache";
 import Cockpit from "@/components/cockpit";
 import { createClient } from "@/lib/supabase/server";
 
@@ -27,7 +28,19 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
     const userId: string = user.user_metadata.provider_id;
     if (!userId) redirect(`/auth/login?redirect=${encodeURIComponent("/select-guild")}`);
 
-    const guild = await verifyUserPermissions(botToken, guildId, userId);
+    // Cache the verification result per guild+user combination
+    const getCachedPermissions = unstable_cache(
+        async (token: string, guild: string, user: string) => {
+            return await verifyUserPermissions(token, guild, user);
+        },
+        ["guild-permissions"], // cache key prefix
+        {
+            tags: [`guild-${guildId}-${userId}`],
+            revalidate: 300, // cache for 5 minutes
+        },
+    );
+
+    const guild = await getCachedPermissions(botToken, guildId, userId);
 
     return <Cockpit messageId={messageId ?? "new"} guild={guild} />;
 }

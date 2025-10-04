@@ -25,6 +25,7 @@ import {
     randomNumber,
     removeAt,
     toComponentEmoji,
+    updateAt,
 } from "@/utils/functions";
 import type { BotActionBody } from "@/utils/types";
 import EmojiPicker from "../emoji-picker";
@@ -132,7 +133,10 @@ export default function ButtonGroup({
                                             if (typeof emoji === "string") {
                                                 setButtonEmoji(emoji);
                                             } else if (emoji !== null) {
-                                                setButtonEmoji({ id: emoji.id, name: emoji.name });
+                                                setButtonEmoji({
+                                                    id: emoji.id,
+                                                    name: emoji.name,
+                                                });
                                             } else {
                                                 setButtonEmoji(null);
                                             }
@@ -236,6 +240,13 @@ export default function ButtonGroup({
                                                 },
                                             ]);
                                         }
+
+                                        // reset states
+                                        setButtonLabel("");
+                                        setButtonEmoji(null);
+                                        setButtonStyle("primary");
+                                        setButtonActionId("");
+                                        setButtonUrl("");
                                     }}
                                 >
                                     <CheckIcon />
@@ -252,18 +263,243 @@ export default function ButtonGroup({
                     {components
                         .filter((component) => component.style !== ButtonStyle.Premium)
                         .map((component, index) => {
+                            // setEditingButtonLabel(component.label ?? "");
+                            // setEditingButtonEmoji(null);
+
+                            // if (component.style === ButtonStyle.Link) {
+                            //     setEditingButtonStyle("link");
+                            // } else {
+                            //     setEditingButtonStyle(
+                            //         component.style === ButtonStyle.Primary
+                            //             ? "primary"
+                            //             : component.style === ButtonStyle.Secondary
+                            //               ? "secondary"
+                            //               : component.style === ButtonStyle.Success
+                            //                 ? "success"
+                            //                 : "danger",
+                            //     );
+                            // }
+
+                            // if (component.style === ButtonStyle.Link) {
+                            //     setEditingButtonUrl(component.url);
+                            // } else {
+                            //     setEditingButtonActionId(component.custom_id);
+                            // }
+
                             return (
                                 <motion.div {...motionProps} key={component.id}>
                                     <div className="rounded-lg border p-2 text-sm flex justify-between bg-input/15">
                                         <div className="flex gap-2 items-center">
-                                            <Button
-                                                className="size-7"
-                                                variant={"ghost"}
-                                                size={"icon"}
-                                                disabled
-                                            >
-                                                <EditIcon />
-                                            </Button>
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button
+                                                        className="size-7"
+                                                        variant={"ghost"}
+                                                        size={"icon"}
+                                                    >
+                                                        <EditIcon />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Edit Button</DialogTitle>
+                                                        <DialogDescription>
+                                                            Edit Button
+                                                        </DialogDescription>
+                                                    </DialogHeader>
+                                                    <div className="flex flex-col gap-6">
+                                                        <div className="flex flex-col gap-2">
+                                                            <Label htmlFor="btn-label">
+                                                                Label
+                                                                <RequiredIndicator />
+                                                            </Label>
+                                                            <div className="flex gap-2">
+                                                                <Input
+                                                                    id="btn-label"
+                                                                    placeholder="Enter your label"
+                                                                    value={buttonLabel}
+                                                                    onChange={(e) =>
+                                                                        setButtonLabel(
+                                                                            e.target.value,
+                                                                        )
+                                                                    }
+                                                                />
+                                                                <EmojiPicker
+                                                                    setEmoji={(emoji) => {
+                                                                        if (
+                                                                            typeof emoji ===
+                                                                            "string"
+                                                                        ) {
+                                                                            setButtonEmoji(emoji);
+                                                                        } else if (emoji !== null) {
+                                                                            setButtonEmoji({
+                                                                                id: emoji.id,
+                                                                                name: emoji.name,
+                                                                            });
+                                                                        } else {
+                                                                            setButtonEmoji(null);
+                                                                        }
+                                                                    }}
+                                                                    emoji={buttonEmoji}
+                                                                    guild={guild}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <RadioGroup
+                                                            value={buttonStyle}
+                                                            onValueChange={(v) =>
+                                                                setButtonStyle(
+                                                                    v as typeof buttonStyle,
+                                                                )
+                                                            }
+                                                            defaultValue="primary"
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <RadioGroupItem
+                                                                    value="primary"
+                                                                    id="r1"
+                                                                />
+                                                                <Label htmlFor="r1">Primary</Label>
+                                                            </div>
+                                                            <div className="flex items-center gap-3">
+                                                                <RadioGroupItem
+                                                                    value="secondary"
+                                                                    id="r2"
+                                                                />
+                                                                <Label htmlFor="r2">
+                                                                    Secondary
+                                                                </Label>
+                                                            </div>
+                                                            <div className="flex items-center gap-3">
+                                                                <RadioGroupItem
+                                                                    value="success"
+                                                                    id="r3"
+                                                                />
+                                                                <Label htmlFor="r3">Success</Label>
+                                                            </div>
+                                                            <div className="flex items-center gap-3">
+                                                                <RadioGroupItem
+                                                                    value="danger"
+                                                                    id="r4"
+                                                                />
+                                                                <Label htmlFor="r4">Danger</Label>
+                                                            </div>
+                                                            <div className="flex items-center gap-3">
+                                                                <RadioGroupItem
+                                                                    value="link"
+                                                                    id="r5"
+                                                                />
+                                                                <Label htmlFor="r5">Link</Label>
+                                                            </div>
+                                                        </RadioGroup>
+                                                        {buttonStyle === "link" ? (
+                                                            <div className="flex flex-col gap-2">
+                                                                <Label htmlFor="btn-url">
+                                                                    URL
+                                                                    <span className="text-destructive">
+                                                                        *
+                                                                    </span>
+                                                                </Label>
+                                                                <Input
+                                                                    id="btn-url"
+                                                                    placeholder="Enter your URL"
+                                                                    inputMode="url"
+                                                                    value={buttonUrl}
+                                                                    onChange={(e) =>
+                                                                        setButtonUrl(e.target.value)
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex flex-col gap-2">
+                                                                <Label htmlFor="btn-action-id">
+                                                                    Action
+                                                                    <RequiredIndicator />
+                                                                </Label>
+                                                                <ActionSelector
+                                                                    setAction={(action) =>
+                                                                        setButtonActionId(
+                                                                            JSON.stringify(
+                                                                                action.details,
+                                                                            ),
+                                                                        )
+                                                                    }
+                                                                    action={buttonActionId}
+                                                                    disabled={messageId === "new"}
+                                                                    messageId={messageId}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <DialogFooter>
+                                                        <DialogClose asChild>
+                                                            <Button
+                                                                disabled={!isValid}
+                                                                onClick={() => {
+                                                                    setComponents(
+                                                                        updateAt(
+                                                                            components.filter(
+                                                                                (component) =>
+                                                                                    component.style !==
+                                                                                    ButtonStyle.Premium,
+                                                                            ),
+                                                                            index,
+                                                                            (oldButton) => {
+                                                                                if (
+                                                                                    oldButton.style ===
+                                                                                    ButtonStyle.Link
+                                                                                ) {
+                                                                                    return {
+                                                                                        id: randomNumber(),
+                                                                                        type: ComponentType.Button,
+                                                                                        label: buttonLabel,
+                                                                                        style: ButtonStyle.Link,
+                                                                                        url: buttonUrl,
+                                                                                        emoji: toComponentEmoji(
+                                                                                            buttonEmoji,
+                                                                                        ),
+                                                                                    };
+                                                                                }
+                                                                                return {
+                                                                                    id: randomNumber(),
+                                                                                    type: ComponentType.Button,
+                                                                                    label: buttonLabel,
+                                                                                    style:
+                                                                                        buttonStyle ===
+                                                                                        "primary"
+                                                                                            ? ButtonStyle.Primary
+                                                                                            : buttonStyle ===
+                                                                                                "secondary"
+                                                                                              ? ButtonStyle.Secondary
+                                                                                              : buttonStyle ===
+                                                                                                  "success"
+                                                                                                ? ButtonStyle.Success
+                                                                                                : ButtonStyle.Danger,
+                                                                                    custom_id:
+                                                                                        buttonActionId,
+                                                                                    emoji: toComponentEmoji(
+                                                                                        buttonEmoji,
+                                                                                    ),
+                                                                                };
+                                                                            },
+                                                                        ),
+                                                                    );
+
+                                                                    // reset states
+                                                                    setButtonLabel("");
+                                                                    setButtonEmoji(null);
+                                                                    setButtonStyle("primary");
+                                                                    setButtonActionId("");
+                                                                    setButtonUrl("");
+                                                                }}
+                                                            >
+                                                                <CheckIcon />
+                                                                Confirm
+                                                            </Button>
+                                                        </DialogClose>
+                                                    </DialogFooter>
+                                                </DialogContent>
+                                            </Dialog>
                                             <div className="flex gap-0.5 items-center">
                                                 <span className="font-medium">
                                                     {component.label}
